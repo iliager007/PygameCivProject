@@ -1,6 +1,8 @@
 import pygame
 from win32api import GetSystemMetrics
 
+COLOR = pygame.Color('white')
+
 
 class Board:
 
@@ -15,6 +17,10 @@ class Board:
         self.count_y = count_cells_y
         self.cell_size = cell_size
         self.board = [[[] for _ in range(count_cells_y)] for __ in range(count_cells_x)]
+        self.rect = [-50, -50,
+                     (count_cells_y + 1) * cell_size + cell_size + 20,
+                     (count_cells_x // 2 + (count_cells_x + 1) % 2) * cell_size + (count_cells_x // 2) * (
+                                 cell_size // 3) + cell_size + 50]
         self.initBoard()
 
     def initBoard(self):
@@ -41,11 +47,12 @@ class Board:
 
     def render(self):
         """Основная функция отрисовки поля"""
+        pygame.draw.rect(screen, COLOR, self.rect, 5)
         for i in self.board:
             for j in i:
                 j.render()
 
-    def button_pressed(self, x: int, y: int):
+    def button_pressed(self, x, y):
         """Определение нажатой клетки"""
         for i in range(self.count_x):
             for j in range(self.count_y):
@@ -64,6 +71,8 @@ class Board:
         #             j += (-8, -4.5)
 
     def move(self, x, y):
+        self.rect[0] += x
+        self.rect[1] += y
         for i in self.board:
             for j in i:
                 j += (x, y)
@@ -77,7 +86,7 @@ class Cell:
 
     def render(self):
         """Основная функция отрисовки"""
-        pygame.draw.polygon(screen, pygame.Color('white'), self.coords, 1)
+        pygame.draw.polygon(screen, COLOR, self.coords, 1)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -117,15 +126,16 @@ class Cell:
 
 
 pygame.init()
-width = GetSystemMetrics(0)
-height = GetSystemMetrics(1)
-size = (width, height)
+MONITOR_width = GetSystemMetrics(0)
+MONITOR_height = GetSystemMetrics(1)
+size = (MONITOR_width, MONITOR_height)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 fps = 60
 clock = pygame.time.Clock()
-board = Board(150, 150, 60)
+board = Board(16 * 4, 9 * 3 + 1, 60)
 running = True
 MOUSEBUTTONDOWN = False
+MOUSEMOTION = False
 K_MOVE = 2
 x, y = 0, 0
 while running:
@@ -142,14 +152,16 @@ while running:
             elif event.button == 5:
                 board.zoom(-1)
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_F11:
-                screen.set_mode(size, pygame.FULLSCREEN)
+            if event.key == pygame.K_ESCAPE:
+                running = False
         elif event.type == pygame.MOUSEBUTTONUP:
             MOUSEBUTTONDOWN = False
+            MOUSEMOTION = False
         elif event.type == pygame.MOUSEMOTION and MOUSEBUTTONDOWN:
             dop_x, dop_y = event.pos[0] - x, event.pos[1] - y
             x, y = event.pos
             board.move(dop_x / K_MOVE, dop_y / K_MOVE)
+            MOUSEMOTION = True
     clock.tick(fps)
     screen.fill((0, 0, 0))
     board.render()
