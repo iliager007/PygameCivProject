@@ -17,10 +17,10 @@ class Board:
         self.count_y = count_cells_y
         self.cell_size = cell_size
         self.board = [[[] for _ in range(count_cells_y)] for __ in range(count_cells_x)]
-        self.rect = [-50, -50,
-                     (count_cells_y + 1) * cell_size + cell_size + 20,
-                     (count_cells_x // 2 + (count_cells_x + 1) % 2) * cell_size + (count_cells_x // 2) * (
-                                 cell_size // 3) + cell_size + 50]
+        self.rect = [-50, -50, (count_cells_y + 3) * cell_size, (count_cells_x - 6) * cell_size]
+        self.screen2 = pygame.Surface(((count_cells_y + 3) * cell_size, (count_cells_x - 6) * cell_size))
+        self.x = -55
+        self.y = -55
         self.initBoard()
 
     def initBoard(self):
@@ -47,10 +47,10 @@ class Board:
 
     def render(self):
         """Основная функция отрисовки поля"""
-        pygame.draw.rect(screen, COLOR, self.rect, 5)
         for i in self.board:
             for j in i:
                 j.render()
+        screen.blit(board.screen2, (self.x + 100, self.y + 100))
 
     def button_pressed(self, x, y):
         """Определение нажатой клетки"""
@@ -71,11 +71,16 @@ class Board:
         #             j += (-8, -4.5)
 
     def move(self, x, y):
-        self.rect[0] += x
-        self.rect[1] += y
-        for i in self.board:
-            for j in i:
-                j += (x, y)
+        self.x += x
+        self.y += y
+        if self.x + self.rect[2] < MONITOR_width:
+            self.x = MONITOR_width - self.rect[2]
+        elif self.x > 0:
+            self.x = 0
+        if self.y > 0:
+            self.y = 0
+        elif self.y + self.rect[3] < MONITOR_height:
+            self.y = MONITOR_height - self.rect[3]
 
 
 class Cell:
@@ -86,7 +91,7 @@ class Cell:
 
     def render(self):
         """Основная функция отрисовки"""
-        pygame.draw.polygon(screen, COLOR, self.coords, 1)
+        pygame.draw.polygon(board.screen2, COLOR, self.coords, 1)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -164,6 +169,7 @@ while running:
             MOUSEMOTION = True
     clock.tick(fps)
     screen.fill((0, 0, 0))
+    board.screen2.fill((0, 0, 0))
     board.render()
     pygame.display.flip()
 pygame.quit()
