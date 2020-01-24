@@ -1,5 +1,6 @@
 import pygame
 from win32api import GetSystemMetrics
+import random
 
 COLOR = pygame.Color('white')
 
@@ -22,6 +23,7 @@ class Board:
         self.x = -55
         self.y = -55
         self.initBoard()
+        self.generate_field()
 
     def initBoard(self):
         """Заполняем игровую площадь клетками Cell"""
@@ -82,12 +84,105 @@ class Board:
         elif self.y + self.rect[3] < MONITOR_height:
             self.y = MONITOR_height - self.rect[3]
 
+    def generate_field(self):
+        """Создаем лист, описывающий типы клеток"""
+        size_x = self.count_x
+        size_y = self.count_y
+        a = [['Nothing' for _ in range(size_x)] for __ in range(size_y)]
+        i, j = random.randint(0, size_y), random.randint(0, size_x)
+        a[i][j] = 'Desert'
+        queue = [(i, j)]
+        while a[i][j] != 'Nothing':
+            i, j = random.randint(1, size_y), random.randint(1, size_x)
+        queue.append((i, j))
+        a[i][j] = 'Ocean'
+        while a[i][j] != 'Nothing':
+            i, j = random.randint(1, size_y), random.randint(1, size_x)
+        queue.append((i, j))
+        a[i][j] = 'Forest'
+        while a[i][j] != 'Nothing':
+            i, j = random.randint(1, size_y), random.randint(1, size_x)
+        queue.append((i, j))
+        a[i][j] = 'Meadow'  # Луг
+        while a[i][j] != 'Nothing':
+            i, j = random.randint(1, size_y), random.randint(1, size_x)
+        queue.append((i, j))
+        a[i][j] = 'Tundra'
+        k = 0
+        while len(queue) != 0:
+            i, j = queue[0]
+            list_neighbour = []
+            if i % 2 == 1:
+                if i >= 1 and j >= 1 and a[i - 1][j - 1] != 'Nothing':
+                    list_neighbour.append(a[i - 1][j - 1])
+                elif i >= 1 and j >= 1:
+                    queue.append((i - 1, j - 1))
+                if i >= 1 and a[i - 1][j] != 'Nothing':
+                    list_neighbour.append(a[i - 1][j])
+                elif i >= 1:
+                    queue.append((i - 1, j))
+                if j < size_x - 1 and a[i][j + 1] != 'Nothing':
+                    list_neighbour.append(a[i][j + 1])
+                elif j < size_x - 1:
+                    queue.append((i, j + 1))
+                if i < size_y - 1 and a[i + 1][j] != 'Nothing':
+                    list_neighbour.append(a[i + 1][j])
+                elif i < size_y - 1:
+                    queue.append((i + 1, j))
+                if i < size_y - 1 and j >= 1 and a[i + 1][j - 1] != 'Nothing':
+                    list_neighbour.append(a[i + 1][j - 1])
+                elif i < size_y - 1 and j >= 1:
+                    queue.append((i + 1, j - 1))
+                if j >= 1 and a[i][j - 1] != 'Nothing':
+                    list_neighbour.append(a[i][j - 1])
+                elif j >= 1:
+                    queue.append((i, j - 1))
+            if i % 2 == 0:
+                if i >= 1 and a[i - 1][j] != 'Nothing':
+                    list_neighbour.append(a[i - 1][j])
+                elif i >= 1:
+                    queue.append((i - 1, j))
+                if i >= 1 and j < size_x - 1 and a[i - 1][j + 1] != 'Nothing':
+                    list_neighbour.append(a[i - 1][j + 1])
+                elif i >= 1 and j < size_x - 1:
+                    queue.append((i - 1, j + 1))
+                if j < size_x - 1 and a[i][j + 1] != 'Nothing':
+                    list_neighbour.append(a[i][j + 1])
+                elif j < size_x - 1:
+                    queue.append((i, j + 1))
+                if i < size_y - 1 and j < size_x - 1 and a[i + 1][j + 1] != 'Nothing':
+                    list_neighbour.append(a[i + 1][j + 1])
+                elif i < size_y - 1 and j < size_x - 1:
+                    queue.append((i + 1, j + 1))
+                if i < size_y - 1 and a[i + 1][j] != 'Nothing':
+                    list_neighbour.append(a[i + 1][j])
+                elif i < size_y - 1:
+                    queue.append((i + 1, j))
+                if j >= 1 and a[i][j - 1] != 'Nothing':
+                    list_neighbour.append(a[i][j - 1])
+                elif j >= 1:
+                    queue.append((i, j - 1))
+            if a[i][j] == 'Nothing':
+                a[i][j] = random.choice(list_neighbour)
+            del queue[0]
+            print(k)
+            k += 1
+        print('Запись в клетки')
+        self.field_to_cells(a)
+
+    def field_to_cells(self, field):
+        """Записываем результат в клетки"""
+        for i, v in enumerate(self.board):
+            for j, k in enumerate(v):
+                k.type = field[i][j]
+
 
 class Cell:
 
-    def __init__(self, coords: list):
+    def __init__(self, coords: list, type='Nothing'):
         """Создаем клетку и задаем её координаты"""
         self.coords = coords
+        self.type = type
 
     def render(self):
         """Основная функция отрисовки"""
@@ -135,9 +230,11 @@ MONITOR_width = GetSystemMetrics(0)
 MONITOR_height = GetSystemMetrics(1)
 size = (MONITOR_width, MONITOR_height)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+screen.fill((0, 0, 0))
+
 fps = 60
 clock = pygame.time.Clock()
-board = Board(16 * 4, 9 * 3 + 1, 60)
+board = Board(15 * 4, 9 * 3 + 1, 60)
 running = True
 MOUSEBUTTONDOWN = False
 MOUSEMOTION = False
