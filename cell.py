@@ -1,8 +1,21 @@
 import pygame
 from win32api import GetSystemMetrics
 import random
+import os
 
 COLOR = pygame.Color('white')
+
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
 
 
 class Board:
@@ -37,7 +50,7 @@ class Board:
                               [x + j * x, 4 / 6 * i * x + x],
                               [1 / 2 * x + j * x, 4 / 6 * i * x + 2 / 3 * x],
                               [1 / 2 * x + j * x, 4 / 6 * i * x + 1 / 3 * x]]
-                    self.board[i][j] = Cell(coords)
+                    self.board[i][j] = Cell(coords, self.cell_size)
                 else:
                     coords = [[1 / 2 * x + j * x, 4 / 6 * (i - 1) * x + 2 / 3 * x],
                               [x + j * x, 4 / 6 * (i - 1) * x + x],
@@ -45,7 +58,7 @@ class Board:
                               [1 / 2 * x + j * x, 4 / 6 * (i - 1) * x + 5 / 3 * x],
                               [j * x, 4 / 6 * (i - 1) * x + 4 / 3 * x],
                               [j * x, 4 / 6 * (i - 1) * x + x]]
-                    self.board[i][j] = Cell(coords)
+                    self.board[i][j] = Cell(coords, self.cell_size)
 
     def render(self):
         """Основная функция отрисовки поля"""
@@ -89,104 +102,102 @@ class Board:
         size_x = self.count_x
         size_y = self.count_y
         a = [['Nothing' for _ in range(size_x)] for __ in range(size_y)]
-        i, j = random.randint(0, size_y), random.randint(0, size_x)
+        i, j = random.randint(0, size_y - 1), random.randint(0, size_x - 1)
         a[i][j] = 'Desert'
         queue = [(i, j)]
         while a[i][j] != 'Nothing':
-            i, j = random.randint(1, size_y), random.randint(1, size_x)
+            i, j = random.randint(0, size_y - 1), random.randint(0, size_x - 1)
         queue.append((i, j))
         a[i][j] = 'Ocean'
         while a[i][j] != 'Nothing':
-            i, j = random.randint(1, size_y), random.randint(1, size_x)
+            i, j = random.randint(0, size_y - 1), random.randint(0, size_x - 1)
         queue.append((i, j))
         a[i][j] = 'Forest'
         while a[i][j] != 'Nothing':
-            i, j = random.randint(1, size_y), random.randint(1, size_x)
+            i, j = random.randint(0, size_y - 1), random.randint(0, size_x - 1)
         queue.append((i, j))
         a[i][j] = 'Meadow'  # Луг
         while a[i][j] != 'Nothing':
-            i, j = random.randint(1, size_y), random.randint(1, size_x)
+            i, j = random.randint(0, size_y - 1), random.randint(0, size_x - 1)
         queue.append((i, j))
         a[i][j] = 'Tundra'
-        k = 0
         while len(queue) != 0:
             i, j = queue[0]
             list_neighbour = []
             if i % 2 == 1:
                 if i >= 1 and j >= 1 and a[i - 1][j - 1] != 'Nothing':
                     list_neighbour.append(a[i - 1][j - 1])
-                elif i >= 1 and j >= 1:
+                elif i >= 1 and j >= 1 and (i - 1, j - 1) not in queue:
                     queue.append((i - 1, j - 1))
                 if i >= 1 and a[i - 1][j] != 'Nothing':
                     list_neighbour.append(a[i - 1][j])
-                elif i >= 1:
+                elif i >= 1 and (i - 1, j) not in queue:
                     queue.append((i - 1, j))
                 if j < size_x - 1 and a[i][j + 1] != 'Nothing':
                     list_neighbour.append(a[i][j + 1])
-                elif j < size_x - 1:
+                elif j < size_x - 1 and (i, j + 1) not in queue:
                     queue.append((i, j + 1))
                 if i < size_y - 1 and a[i + 1][j] != 'Nothing':
                     list_neighbour.append(a[i + 1][j])
-                elif i < size_y - 1:
+                elif i < size_y - 1 and (i + 1, j) not in queue:
                     queue.append((i + 1, j))
                 if i < size_y - 1 and j >= 1 and a[i + 1][j - 1] != 'Nothing':
                     list_neighbour.append(a[i + 1][j - 1])
-                elif i < size_y - 1 and j >= 1:
+                elif i < size_y - 1 and j >= 1 and (i + 1, j - 1) not in queue:
                     queue.append((i + 1, j - 1))
                 if j >= 1 and a[i][j - 1] != 'Nothing':
                     list_neighbour.append(a[i][j - 1])
-                elif j >= 1:
+                elif j >= 1 and (i, j - 1) not in queue:
                     queue.append((i, j - 1))
             if i % 2 == 0:
                 if i >= 1 and a[i - 1][j] != 'Nothing':
                     list_neighbour.append(a[i - 1][j])
-                elif i >= 1:
+                elif i >= 1 and (i - 1, j) not in queue:
                     queue.append((i - 1, j))
                 if i >= 1 and j < size_x - 1 and a[i - 1][j + 1] != 'Nothing':
                     list_neighbour.append(a[i - 1][j + 1])
-                elif i >= 1 and j < size_x - 1:
+                elif i >= 1 and j < size_x - 1 and (i - 1, j + 1) not in queue:
                     queue.append((i - 1, j + 1))
                 if j < size_x - 1 and a[i][j + 1] != 'Nothing':
                     list_neighbour.append(a[i][j + 1])
-                elif j < size_x - 1:
+                elif j < size_x - 1 and (i, j + 1) not in queue:
                     queue.append((i, j + 1))
                 if i < size_y - 1 and j < size_x - 1 and a[i + 1][j + 1] != 'Nothing':
                     list_neighbour.append(a[i + 1][j + 1])
-                elif i < size_y - 1 and j < size_x - 1:
+                elif i < size_y - 1 and j < size_x - 1 and (i + 1, j + 1) not in queue:
                     queue.append((i + 1, j + 1))
                 if i < size_y - 1 and a[i + 1][j] != 'Nothing':
                     list_neighbour.append(a[i + 1][j])
-                elif i < size_y - 1:
+                elif i < size_y - 1 and (i + 1, j) not in queue:
                     queue.append((i + 1, j))
                 if j >= 1 and a[i][j - 1] != 'Nothing':
                     list_neighbour.append(a[i][j - 1])
-                elif j >= 1:
+                elif j >= 1 and (i, j - 1) not in queue:
                     queue.append((i, j - 1))
             if a[i][j] == 'Nothing':
                 a[i][j] = random.choice(list_neighbour)
             del queue[0]
-            print(k)
-            k += 1
-        print('Запись в клетки')
         self.field_to_cells(a)
 
     def field_to_cells(self, field):
         """Записываем результат в клетки"""
         for i, v in enumerate(self.board):
             for j, k in enumerate(v):
-                k.type = field[i][j]
+                k.change_type(field[j][i])
 
 
 class Cell:
 
-    def __init__(self, coords: list, type='Nothing'):
+    def __init__(self, coords: list, cell_size):
         """Создаем клетку и задаем её координаты"""
         self.coords = coords
-        self.type = type
+        self.cell_size = cell_size
+        self.color = ''
+        self.image = ''
 
     def render(self):
         """Основная функция отрисовки"""
-        pygame.draw.polygon(board.screen2, COLOR, self.coords, 1)
+        pygame.draw.polygon(board.screen2, self.color, self.coords)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -209,20 +220,19 @@ class Cell:
         else:
             return False
 
-    def __add__(self, other):
-        x, y = other[0], other[1]
-        self.coords[0][0] += x
-        self.coords[0][1] += y
-        self.coords[1][0] += x
-        self.coords[1][1] += y
-        self.coords[2][0] += x
-        self.coords[2][1] += y
-        self.coords[3][0] += x
-        self.coords[3][1] += y
-        self.coords[4][0] += x
-        self.coords[4][1] += y
-        self.coords[5][0] += x
-        self.coords[5][1] += y
+    def change_type(self, type):
+        """Меняем тип клетки и загружаем её фоновое изображение"""
+        print(1)
+        image = load_image(type + '.png')
+        self.image = pygame.transform.scale(image, (self.cell_size, self.cell_size))
+        if type == 'Forest' or type == 'Meadow':
+            self.color = pygame.Color('#228b22')
+        elif type == 'Ocean':
+            self.color = pygame.Color('#4169e1')
+        elif type == 'Tundra':
+            self.color = pygame.Color('#e6e6fa')
+        elif type == 'Desert':
+            self.color = pygame.Color('#f7e96d')
 
 
 pygame.init()
@@ -234,7 +244,7 @@ screen.fill((0, 0, 0))
 
 fps = 60
 clock = pygame.time.Clock()
-board = Board(15 * 4, 9 * 3 + 1, 60)
+board = Board(50, 30, 60)
 running = True
 MOUSEBUTTONDOWN = False
 MOUSEMOTION = False
