@@ -7,18 +7,24 @@ COLOR = pygame.Color('white')
 
 class Board:
 
-    def __init__(self, count_cells_y: int, count_cells_x: int, cell_size: int):
+    def __init__(self, count_cells_y: int, count_cells_x: int, cell_size: int, MONITOR_width, MONITOR_height):
         """
         Создаем поле игры,
         Первый параметр - количество клеток по ширине,
         Второй параметр - количество клеток по высоте,
         Третий - размер клеток
+        Четвертый и пятый - размеры мониторы
         """
+        self.MONITOR_width = MONITOR_width
+        self.MONITOR_height = MONITOR_height
+        self.MAX_ZOOM = 15
+        self.T_ZOOM = 0
+        self.MIN_ZOOM = -15
         self.count_x = count_cells_x
         self.count_y = count_cells_y
         self.cell_size = cell_size
         self.board = [[[] for _ in range(count_cells_y)] for __ in range(count_cells_x)]
-        self.rect = [-50, -50, (count_cells_y + 3) * cell_size, (count_cells_x - 6) * cell_size]
+        self.rect = [-50, -50, (count_cells_y + 3) * cell_size, (count_cells_x + 6) * cell_size]
         self.screen2 = pygame.Surface(((count_cells_y + 3) * cell_size, (count_cells_x - 6) * cell_size))
         self.x = -55
         self.y = -55
@@ -47,12 +53,12 @@ class Board:
                               [j * x, 4 / 6 * (i - 1) * x + x]]
                     self.board[i][j] = Cell(coords, self.cell_size)
 
-    def render(self):
+    def render(self, screen):
         """Основная функция отрисовки поля"""
         for i in self.board:
             for j in i:
-                j.render()
-        screen.blit(board.screen2, (self.x + 100, self.y + 100))
+                j.render(self)
+        screen.blit(self.screen2, (self.x + 100, self.y + 100))
 
     def button_pressed(self, x, y):
         """Определение нажатой клетки"""
@@ -62,27 +68,31 @@ class Board:
                     print(i, j)
 
     def zoom(self, koef):
-        pass
-        # if koef == 1:
-        #     for i in self.board:
-        #         for j in i:
-        #             j += (8, 4.5)
-        # elif koef == -1:
-        #     for i in self.board:
-        #         for j in i:
-        #             j += (-8, -4.5)
+        if self.T_ZOOM == self.MAX_ZOOM and koef == 1:
+            return
+        elif self.T_ZOOM == self.MIN_ZOOM and koef == -1:
+            return
+        self.T_ZOOM += koef
+        if type == 1:
+            self.cell_size *= 2
+            self.screen2 = pygame.Surface(((self.count_y + 3) * self.cell_size, (self.count_x - 6) * self.cell_size))
+        if type == -1:
+            self.cell_size //= 2
+        for i in self.board:
+            for j in i:
+                j.change_size(koef)
 
     def move(self, x, y):
         self.x += x
         self.y += y
-        if self.x + self.rect[2] < MONITOR_width:
-            self.x = MONITOR_width - self.rect[2]
+        if self.x + self.rect[2] < self.MONITOR_width:
+            self.x = self.MONITOR_width - self.rect[2]
         elif self.x > 0:
             self.x = 0
         if self.y > 0:
             self.y = 0
-        elif self.y + self.rect[3] < MONITOR_height:
-            self.y = MONITOR_height - self.rect[3]
+        elif self.y + self.rect[3] < self.MONITOR_height:
+            self.y = self.MONITOR_height - self.rect[3]
 
     def generate_field(self):
         """Создаем лист, описывающий типы клеток"""
@@ -180,9 +190,9 @@ class Cell:
         self.coords = coords
         self.cell_size = cell_size
         self.color = ''
-        self.image = ''
+        self.sustenance = 0
 
-    def render(self):
+    def render(self, board):
         """Основная функция отрисовки"""
         pygame.draw.polygon(board.screen2, pygame.Color('black'), self.coords, 4)
         pygame.draw.polygon(board.screen2, self.color, self.coords)
@@ -210,7 +220,9 @@ class Cell:
 
     def change_type(self, type):
         """Меняем тип клетки и загружаем её фоновое изображение"""
-        if type == 'Forest' or type == 'Meadow':
+        if type == 'Forest':
+            self.color = pygame.Color('#013220')
+        elif type == 'Meadow':
             self.color = pygame.Color('#228b22')
         elif type == 'Ocean':
             self.color = pygame.Color('#4169e1')
@@ -219,49 +231,10 @@ class Cell:
         elif type == 'Desert':
             self.color = pygame.Color('#f7e96d')
 
-
-pygame.init()
-MONITOR_width = GetSystemMetrics(0)
-MONITOR_height = GetSystemMetrics(1)
-size = (MONITOR_width, MONITOR_height)
-screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-screen.fill((0, 0, 0))
-
-fps = 60
-clock = pygame.time.Clock()
-board = Board(50, 30, 60)
-running = True
-MOUSEBUTTONDOWN = False
-MOUSEMOTION = False
-K_MOVE = 2
-x, y = 0, 0
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            MOUSEBUTTONDOWN = True
-            x, y = event.pos
-            if event.button == 1:
-                board.button_pressed(*event.pos)
-            elif event.button == 4:
-                board.zoom(1)
-            elif event.button == 5:
-                board.zoom(-1)
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
-        elif event.type == pygame.MOUSEBUTTONUP:
-            MOUSEBUTTONDOWN = False
-            MOUSEMOTION = False
-        elif event.type == pygame.MOUSEMOTION and MOUSEBUTTONDOWN:
-            dop_x, dop_y = event.pos[0] - x, event.pos[1] - y
-            x, y = event.pos
-            board.move(dop_x / K_MOVE, dop_y / K_MOVE)
-            MOUSEMOTION = True
-    clock.tick(fps)
-    screen.fill((0, 0, 0))
-    board.screen2.fill((0, 0, 0))
-    board.render()
-    pygame.display.flip()
-pygame.quit()
+    def change_size(self, type):
+        if type == 1:
+            for i in range(len(self.coords)):
+                self.coords[i] = (self.coords[i][0] * 1.05 - 32, self.coords[i][1] * 1.05 - 18)
+        if type == -1:
+            for i in range(len(self.coords)):
+                self.coords[i] = ((self.coords[i][0] + 32) / 1.05, (self.coords[i][1] + 18) / 1.05)
