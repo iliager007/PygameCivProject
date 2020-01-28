@@ -1,21 +1,8 @@
 import pygame
 from win32api import GetSystemMetrics
 import random
-import os
 
 COLOR = pygame.Color('white')
-
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert()
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
 
 
 class Board:
@@ -197,6 +184,7 @@ class Cell:
 
     def render(self):
         """Основная функция отрисовки"""
+        pygame.draw.polygon(board.screen2, pygame.Color('black'), self.coords, 4)
         pygame.draw.polygon(board.screen2, self.color, self.coords)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
@@ -222,9 +210,6 @@ class Cell:
 
     def change_type(self, type):
         """Меняем тип клетки и загружаем её фоновое изображение"""
-        print(1)
-        image = load_image(type + '.png')
-        self.image = pygame.transform.scale(image, (self.cell_size, self.cell_size))
         if type == 'Forest' or type == 'Meadow':
             self.color = pygame.Color('#228b22')
         elif type == 'Ocean':
