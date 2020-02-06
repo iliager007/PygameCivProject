@@ -1,8 +1,7 @@
 import pygame
-from win32api import GetSystemMetrics
 import random
-
-COLOR = pygame.Color('white')
+from copy import deepcopy
+from town import Town
 
 
 class Board:
@@ -43,7 +42,7 @@ class Board:
                               [x + j * x, 4 / 6 * i * x + x],
                               [1 / 2 * x + j * x, 4 / 6 * i * x + 2 / 3 * x],
                               [1 / 2 * x + j * x, 4 / 6 * i * x + 1 / 3 * x]]
-                    self.board[i][j] = Cell(coords, self.cell_size)
+                    self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
                 else:
                     coords = [[1 / 2 * x + j * x, 4 / 6 * (i - 1) * x + 2 / 3 * x],
                               [x + j * x, 4 / 6 * (i - 1) * x + x],
@@ -51,13 +50,13 @@ class Board:
                               [1 / 2 * x + j * x, 4 / 6 * (i - 1) * x + 5 / 3 * x],
                               [j * x, 4 / 6 * (i - 1) * x + 4 / 3 * x],
                               [j * x, 4 / 6 * (i - 1) * x + x]]
-                    self.board[i][j] = Cell(coords, self.cell_size)
+                    self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
         for i in self.board:
             for j in i:
-                j.render(self)
+                j.render()
         screen.blit(self.screen2, (self.x + 100, self.y + 100))
 
     def button_pressed(self, x, y):
@@ -75,7 +74,6 @@ class Board:
         self.T_ZOOM += koef
         if type == 1:
             self.cell_size *= 2
-            self.screen2 = pygame.Surface(((self.count_y + 3) * self.cell_size, (self.count_x - 6) * self.cell_size))
         if type == -1:
             self.cell_size //= 2
         for i in self.board:
@@ -182,20 +180,52 @@ class Board:
             for j, k in enumerate(v):
                 k.change_type(field[j][i])
 
+    def get_board(self):
+        # Вода - 0
+        # Лес - 1
+        # Луг - 2
+        # Тундра - 3
+        # Пустыня - 4
+        board = deepcopy(self.board)
+        for i, v in enumerate(board):
+            for j, value in enumerate(v):
+                if value.type == 'Ocean':
+                    board[i][j] = 0
+                elif value.type == 'Forest':
+                    board[i][j] = 1
+                elif value.type == 'Meadow':
+                    board[i][j] = 2
+                elif value.type == 'Tundra':
+                    board[i][j] = 3
+                elif board[i][j] == 'Desert':
+                    board[i][j] = 4
+        return self.board
+
+    def get_count_cells_x(self):
+        return self.count_x
+
+    def get_count_cells_y(self):
+        return self.count_y
+
 
 class Cell:
 
-    def __init__(self, coords: list, cell_size):
+    def __init__(self, coords: list, cell_size, board, x, y):
         """Создаем клетку и задаем её координаты"""
         self.coords = coords
         self.cell_size = cell_size
         self.color = ''
+        self.type = 'Nothing'
         self.sustenance = 0
+        self.board = board
+        self.x = x
+        self.y = y
+        self.town = ''
 
-    def render(self, board):
+    def render(self):
         """Основная функция отрисовки"""
-        pygame.draw.polygon(board.screen2, pygame.Color('black'), self.coords, 4)
-        pygame.draw.polygon(board.screen2, self.color, self.coords)
+        pygame.draw.polygon(self.board.screen2, pygame.Color('black'), self.coords, 4)
+        pygame.draw.polygon(self.board.screen2, self.color, self.coords)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -220,6 +250,7 @@ class Cell:
 
     def change_type(self, type):
         """Меняем тип клетки и загружаем её фоновое изображение"""
+        self.type = type
         if type == 'Forest':
             self.color = pygame.Color('#013220')
         elif type == 'Meadow':
@@ -238,3 +269,13 @@ class Cell:
         if type == -1:
             for i in range(len(self.coords)):
                 self.coords[i] = ((self.coords[i][0] + 32) / 1.05, (self.coords[i][1] + 18) / 1.05)
+
+    def get_coords(self):
+        return self.coords
+
+    def add_town(self):
+        dop = []
+        for i in range(min(0, self.x - 1), min(self.board.get_count_cells_x(), self.x + 2)):
+            for j in range(min(0, self.y - 1), min(self.board.get_count_cells_y(), self.y + 2)):
+                dop.append(self.board.get_cell(i, j))
+        self.town = Town(self.x, self.y, 'Москва', self, dop)

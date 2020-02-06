@@ -1,6 +1,8 @@
 import pygame
 from win32api import GetSystemMetrics
 from cell import Board
+from town import Town
+from units import Settlers
 
 pygame.init()
 MONITOR_width = GetSystemMetrics(0)
