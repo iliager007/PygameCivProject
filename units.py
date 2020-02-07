@@ -1,8 +1,23 @@
 from copy import deepcopy
+import os
+import pygame
+
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
 
 
 class Settlers:
     """Класс Поселенцы"""
+
     def __init__(self, x, y, town, board):
         self.x = x
         self.y = y
@@ -11,8 +26,10 @@ class Settlers:
         self.t_level = 0
         self.t_moving = []
         self.max_move = 3
+        self.image = load_image('переселенцы.png', -1)
 
     def move(self, x, y):
+        dop_x, dop_y = self.x, self.y
         if len(self.t_moving) == 0:
             dop = self.check_can_move(x, y)
             if dop is False:
@@ -28,6 +45,7 @@ class Settlers:
             elif i == 'left':
                 self.x -= 1
         self.t_moving = self.t_moving[self.max_move:]
+        self.board.change_cell(dop_x, dop_y, x, y)
 
     def check_can_move(self, x, y):
         """Проверка можно ли перейти в нужную клетку"""
@@ -90,3 +108,11 @@ class Settlers:
                 result[weight] = 'left'
                 x += 1
         return result[1:]
+
+    def render(self, coords, cell_size, screen):
+        self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
+        coords_rect = [((coords[2][0] + coords[3][0]) // 2, (coords[2][1] + coords[3][1]) // 2),
+                       ((coords[3][0] + coords[4][0]) // 2, (coords[3][1] + coords[4][1]) // 2),
+                       ((coords[5][0] + coords[0][0]) // 2, (coords[5][1] + coords[0][1]) // 2),
+                       ((coords[0][0] + coords[1][0]) // 2, (coords[0][1] + coords[1][1]) // 2)]
+        screen.blit(self.image, (coords_rect[0][0], coords_rect[0][1]))

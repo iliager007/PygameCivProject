@@ -2,6 +2,7 @@ import pygame
 import random
 from copy import deepcopy
 from town import Town
+from units import  Settlers
 
 
 class Board:
@@ -51,6 +52,7 @@ class Board:
                               [j * x, 4 / 6 * (i - 1) * x + 4 / 3 * x],
                               [j * x, 4 / 6 * (i - 1) * x + x]]
                     self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
+        self.init_town(3, 3)
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
@@ -67,6 +69,7 @@ class Board:
                     print(i, j)
 
     def zoom(self, koef):
+        """Изменение размеров клеток"""
         if self.T_ZOOM == self.MAX_ZOOM and koef == 1:
             return
         elif self.T_ZOOM == self.MIN_ZOOM and koef == -1:
@@ -81,6 +84,7 @@ class Board:
                 j.change_size(koef)
 
     def move(self, x, y):
+        """Перемещение поля на котором рисуем"""
         self.x += x
         self.y += y
         if self.x + self.rect[2] < self.MONITOR_width:
@@ -181,6 +185,7 @@ class Board:
                 k.change_type(field[j][i])
 
     def get_board(self):
+        """Передаем поле с условными обозначениями"""
         # Вода - 0
         # Лес - 1
         # Луг - 2
@@ -202,11 +207,20 @@ class Board:
         return self.board
 
     def get_count_cells_x(self):
+        """Возвращает количество клеток по ширине"""
         return self.count_x
 
     def get_count_cells_y(self):
+        """Возвращает количество клеток по высоте"""
         return self.count_y
 
+    def init_town(self, x, y):
+        """Создает город в клетке с координатами x, y"""
+        self.board[x][y].add_town()
+
+    def get_cell(self, x, y):
+        """Возвращает клетку с координатами x, y"""
+        return self.board[x][y]
 
 class Cell:
 
@@ -221,11 +235,18 @@ class Cell:
         self.x = x
         self.y = y
         self.town = ''
+        self.town_on_cell = False
+        self.unit_on_cell = False
 
     def render(self):
         """Основная функция отрисовки"""
         pygame.draw.polygon(self.board.screen2, pygame.Color('black'), self.coords, 4)
-        pygame.draw.polygon(self.board.screen2, self.color, self.coords)
+        if not self.town_on_cell:
+            pygame.draw.polygon(self.board.screen2, self.color, self.coords)
+        # if self.unit_on_cell:
+        #     self.unit.render(self.coords, self.cell_size, self.board.screen2)
+        if self.town_on_cell:
+            self.town.render(self.coords, self.cell_size, self.board.screen2)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -263,6 +284,7 @@ class Cell:
             self.color = pygame.Color('#f7e96d')
 
     def change_size(self, type):
+        """Изменить размер клетки"""
         if type == 1:
             for i in range(len(self.coords)):
                 self.coords[i] = (self.coords[i][0] * 1.05 - 32, self.coords[i][1] * 1.05 - 18)
@@ -271,11 +293,18 @@ class Cell:
                 self.coords[i] = ((self.coords[i][0] + 32) / 1.05, (self.coords[i][1] + 18) / 1.05)
 
     def get_coords(self):
+        """Возвращает координаты клетки"""
         return self.coords
 
     def add_town(self):
+        """Добавление города"""
         dop = []
         for i in range(min(0, self.x - 1), min(self.board.get_count_cells_x(), self.x + 2)):
             for j in range(min(0, self.y - 1), min(self.board.get_count_cells_y(), self.y + 2)):
                 dop.append(self.board.get_cell(i, j))
-        self.town = Town(self.x, self.y, 'Москва', self, dop)
+        self.town = Town(self.x, self.y, self, dop)
+        self.town_on_cell = True
+
+    def add_unit(self, unit):
+        self.unit_on_cell = True
+        self.unit = unit
