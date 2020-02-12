@@ -54,8 +54,7 @@ class Board:
                               [j * x + 600, 4 / 6 * (i - 1) * x + 4 / 3 * x + 600],
                               [j * x + 600, 4 / 6 * (i - 1) * x + x + 600]]
                     self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
-        self.init_town(7, 7)
-        self.set_settlers(7, 6)
+        self.init_settlers(7, 6, 'NEW')
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
@@ -79,7 +78,7 @@ class Board:
             for j in range(self.count_y):
                 if self.board[i][j].check_is_pressed(x, y):
                     print(i, j)
-                    if self.active_cell is None or self.board[i][j].have_unit():
+                    if self.active_cell is None or self.board[i][j].have_unit() or self.board[i][j].have_town():
                         self.active_cell = (i, j)
                     else:
                         if self.board[self.active_cell[0]][self.active_cell[1]].have_town():
@@ -89,7 +88,6 @@ class Board:
                             self.y_to_change = self.active_cell[1]
                             self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, j)
                         self.active_cell = None
-        print(self.active_cell)
 
     def zoom(self, koef):
         """Изменение размеров клеток"""
@@ -239,36 +237,68 @@ class Board:
 
     def init_town(self, x, y):
         """Создает город в клетке с координатами x, y"""
-        if x == y == -1:
-            if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Settlers':
-                self.board[self.active_cell[0]][self.active_cell[1]].add_town()
-                self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
-        self.board[x][y].add_town()
+        try:
+            if x == y == -1:
+                if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Settlers':
+                    self.board[self.active_cell[0]][self.active_cell[1]].add_town()
+                    self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
+            self.board[x][y].add_town()
+        except TypeError:
+            return
 
     def get_cell(self, x, y):
         """Возвращает клетку с координатами x, y"""
         return self.board[x][y]
 
-    def set_settlers(self, x, y):
-        for i in range(x - 1, x + 2):
-            for j in range(y - 1, y + 2):
-                if self.board[i][j].have_town():
-                    if not self.board[x][y].have_unit():
-                        self.board[x][y].add_settlers(Settlers(x, y, self))
-                        return
-
     def get_town(self, x, y):
         return self.board[x][y].get_town()
 
-    def change_cell(self, x1, y1):
-        x = self.x_to_change
-        y = self.y_to_change
+    def change_cell(self, x1, y1, x=-1, y=-1):
+        if x == y == -1:
+            x = self.x_to_change
+            y = self.y_to_change
         print(f'С {x} {y} на {x1} {y1}')
         dop = self.board[x][y].get_unit()
         if dop is None:
             return
         self.board[x][y].del_unit()
         self.board[x1][y1].add_unit(dop)
+
+    def init_settlers(self, x=-1, y=-1, pr='OLD'):
+        if self.active_cell is None and pr == 'OLD':
+            return
+        if x == y == -1:
+            x, y = self.active_cell
+        if pr == 'NEW':
+            self.board[x][y].add_settlers(Settlers(x, y, self))
+            return
+        if not self.board[x][y].have_town():
+            return
+        if y % 2 == 0:
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_settlers(Settlers(i, j, self))
+                        return
+        else:
+            for i in range(x - 1, x + 2):
+                for j in range(y, y + 3):
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_settlers(Settlers(i, j, self))
+                        return
+
+    def next_move(self):
+        dop = []
+        for i in self.board:
+            for j in i:
+                if j.have_unit() or j.have_town():
+                    dop.append(j)
+        for i in dop:
+            i.next_move()
 
 
 class Cell:
@@ -363,6 +393,8 @@ class Cell:
                 # self.board.change_color_cell(i, j, )
         self.town = Town(self.x, self.y, self, dop)
         self.town_on_cell = True
+        self.unit_on_cell = False
+        self.unit = None
 
     def add_settlers(self, unit):
         """Добавление поселенцев на клетку"""
@@ -398,3 +430,9 @@ class Cell:
 
     def __str__(self):
         return ' '.join([str(self.x), str(self.y), str(self.unit)])
+
+    def next_move(self):
+        if self.unit_on_cell:
+            self.unit.next_move()
+        if self.town_on_cell:
+            self.town.next_move()

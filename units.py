@@ -25,27 +25,36 @@ class Settlers:
         self.t_level = 0
         self.t_moving = []
         self.max_move = 1
+        self.count_move = 0
         self.image = load_image('переселенцы.png', -1)
 
     def move(self, x, y):
-        dop_x, dop_y = self.x, self.y
-        if len(self.t_moving) == 0:
-            dop = self.check_can_move(x, y)
-            if dop is False:
-                return
-            self.t_moving = deepcopy(dop)
+        self.count_move = 0
+        dop = self.check_can_move(x, y)
+        if dop is False:
+            return
+        self.t_moving = deepcopy(dop)
         print(self.t_moving)
-        for i in self.t_moving[0:self.max_move]:
+        self.next_move()
+
+    def next_move(self):
+        if len(self.t_moving) == 0:
+            return
+        self.count_move += 1
+        dop_x, dop_y = self.x, self.y
+        print(dop_x, dop_y)
+        for i in self.t_moving[:3]:
+            print(i)
             if i == 'down':
-                self.y += 1
-            elif i == 'up':
-                self.y -= 1
-            elif i == 'right':
                 self.x += 1
-            elif i == 'left':
+            elif i == 'up':
                 self.x -= 1
-        self.t_moving = self.t_moving[self.max_move:]
-        self.board.change_cell(x, y)
+            elif i == 'right':
+                self.y += 1
+            elif i == 'left':
+                self.y -= 1
+        self.t_moving = self.t_moving[3:]
+        self.board.change_cell(self.x, self.y, dop_x, dop_y)
 
     def check_can_move(self, x, y):
         """Проверка можно ли перейти в нужную клетку"""

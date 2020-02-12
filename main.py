@@ -14,8 +14,8 @@ fps = 60
 clock = pygame.time.Clock()
 board = Board(60, 30, 60, MONITOR_width, MONITOR_height)
 running = True
-MOUSEBUTTONDOWN = False
 MOUSEMOTION = False
+MOUSE_BUTTON_PRESSED = False
 K_MOVE = 2
 x, y = 0, 0
 while running:
@@ -23,7 +23,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            MOUSEBUTTONDOWN = True
+            MOUSE_BUTTON_PRESSED = True
             x, y = event.pos
             if event.button == 1:
                 board.button_pressed(*event.pos)
@@ -36,10 +36,15 @@ while running:
                 running = False
             elif event.key == pygame.K_SPACE:
                 board.init_town(-1, -1)
+            elif event.key == pygame.K_1:
+                board.init_settlers()
+            elif event.key == pygame.K_RETURN:
+                print('ENTER IS PRESSED')
+                board.next_move()
         elif event.type == pygame.MOUSEBUTTONUP:
-            MOUSEBUTTONDOWN = False
+            MOUSE_BUTTON_PRESSED = False
             MOUSEMOTION = False
-        elif event.type == pygame.MOUSEMOTION and MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEMOTION and MOUSE_BUTTON_PRESSED:
             dop_x, dop_y = event.pos[0] - x, event.pos[1] - y
             x, y = event.pos
             board.move(dop_x / K_MOVE, dop_y / K_MOVE)
