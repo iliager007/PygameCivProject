@@ -34,6 +34,8 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.key == pygame.K_SPACE:
+                board.init_town(-1, -1)
         elif event.type == pygame.MOUSEBUTTONUP:
             MOUSEBUTTONDOWN = False
             MOUSEMOTION = False

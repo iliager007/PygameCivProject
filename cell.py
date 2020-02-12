@@ -239,6 +239,10 @@ class Board:
 
     def init_town(self, x, y):
         """Создает город в клетке с координатами x, y"""
+        if x == y == -1:
+            if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Settlers':
+                self.board[self.active_cell[0]][self.active_cell[1]].add_town()
+                self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
         self.board[x][y].add_town()
 
     def get_cell(self, x, y):
