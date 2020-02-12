@@ -1,8 +1,7 @@
 import pygame
 import random
-from copy import deepcopy
 from town import Town
-from units import  Settlers
+from units import Settlers
 
 
 class Board:
@@ -24,10 +23,13 @@ class Board:
         self.count_y = count_cells_y
         self.cell_size = cell_size
         self.board = [[[] for _ in range(count_cells_y)] for __ in range(count_cells_x)]
-        self.rect = [-50, -50, (count_cells_y + 3) * cell_size, (count_cells_x + 6) * cell_size]
-        self.screen2 = pygame.Surface(((count_cells_y + 3) * cell_size, (count_cells_x - 6) * cell_size))
-        self.x = -55
-        self.y = -55
+        self.rect = [-600, -600, (count_cells_y + 3) * cell_size + 2200, (count_cells_x + 6) * cell_size + 2200]
+        self.screen2 = pygame.Surface(((count_cells_y + 3) * cell_size + 2200, (count_cells_x - 6) * cell_size + 5200))
+        self.x = -600
+        self.y = -600
+        self.active_cell = None
+        self.x_to_change = 0
+        self.y_to_change = 0
         self.initBoard()
         self.generate_field()
 
@@ -37,22 +39,23 @@ class Board:
         for i in range(self.count_x):
             for j in range(self.count_y):
                 if i % 2 == 0:
-                    coords = [[x + j * x, 4 / 6 * i * x],
-                              [3 / 2 * x + j * x, 4 / 6 * i * x + 1 / 3 * x],
-                              [3 / 2 * x + j * x, 4 / 6 * i * x + 2 / 3 * x],
-                              [x + j * x, 4 / 6 * i * x + x],
-                              [1 / 2 * x + j * x, 4 / 6 * i * x + 2 / 3 * x],
-                              [1 / 2 * x + j * x, 4 / 6 * i * x + 1 / 3 * x]]
+                    coords = [[x + j * x + 600, 4 / 6 * i * x + 600],
+                              [3 / 2 * x + j * x + 600, 4 / 6 * i * x + 1 / 3 * x + 600],
+                              [3 / 2 * x + j * x + 600, 4 / 6 * i * x + 2 / 3 * x + 600],
+                              [x + j * x + 600, 4 / 6 * i * x + x + 600],
+                              [1 / 2 * x + j * x + 600, 4 / 6 * i * x + 2 / 3 * x + 600],
+                              [1 / 2 * x + j * x + 600, 4 / 6 * i * x + 1 / 3 * x + 600]]
                     self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
                 else:
-                    coords = [[1 / 2 * x + j * x, 4 / 6 * (i - 1) * x + 2 / 3 * x],
-                              [x + j * x, 4 / 6 * (i - 1) * x + x],
-                              [x + j * x, 4 / 6 * (i - 1) * x + 4 / 3 * x],
-                              [1 / 2 * x + j * x, 4 / 6 * (i - 1) * x + 5 / 3 * x],
-                              [j * x, 4 / 6 * (i - 1) * x + 4 / 3 * x],
-                              [j * x, 4 / 6 * (i - 1) * x + x]]
+                    coords = [[1 / 2 * x + j * x + 600, 4 / 6 * (i - 1) * x + 2 / 3 * x + 600],
+                              [x + j * x + 600, 4 / 6 * (i - 1) * x + x + 600],
+                              [x + j * x + 600, 4 / 6 * (i - 1) * x + 4 / 3 * x + 600],
+                              [1 / 2 * x + j * x + 600, 4 / 6 * (i - 1) * x + 5 / 3 * x + 600],
+                              [j * x + 600, 4 / 6 * (i - 1) * x + 4 / 3 * x + 600],
+                              [j * x + 600, 4 / 6 * (i - 1) * x + x + 600]]
                     self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
-        self.init_town(3, 3)
+        self.init_town(7, 7)
+        self.set_settlers(7, 6)
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
@@ -61,12 +64,32 @@ class Board:
                 j.render()
         screen.blit(self.screen2, (self.x + 100, self.y + 100))
 
+    def __copy__(self):
+        dop = []
+        for i in self.board:
+            dop1 = []
+            for j in i:
+                dop1.append(j.__copy__())
+            dop.append(dop1)
+        return dop
+
     def button_pressed(self, x, y):
         """Определение нажатой клетки"""
         for i in range(self.count_x):
             for j in range(self.count_y):
                 if self.board[i][j].check_is_pressed(x, y):
                     print(i, j)
+                    if self.active_cell is None or self.board[i][j].have_unit():
+                        self.active_cell = (i, j)
+                    else:
+                        if self.board[self.active_cell[0]][self.active_cell[1]].have_town():
+                            pass
+                        elif self.board[self.active_cell[0]][self.active_cell[1]].have_unit():
+                            self.x_to_change = self.active_cell[0]
+                            self.y_to_change = self.active_cell[1]
+                            self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, j)
+                        self.active_cell = None
+        print(self.active_cell)
 
     def zoom(self, koef):
         """Изменение размеров клеток"""
@@ -191,7 +214,7 @@ class Board:
         # Луг - 2
         # Тундра - 3
         # Пустыня - 4
-        board = deepcopy(self.board)
+        board = self.__copy__()
         for i, v in enumerate(board):
             for j, value in enumerate(v):
                 if value.type == 'Ocean':
@@ -204,7 +227,7 @@ class Board:
                     board[i][j] = 3
                 elif board[i][j] == 'Desert':
                     board[i][j] = 4
-        return self.board
+        return board
 
     def get_count_cells_x(self):
         """Возвращает количество клеток по ширине"""
@@ -222,6 +245,28 @@ class Board:
         """Возвращает клетку с координатами x, y"""
         return self.board[x][y]
 
+    def set_settlers(self, x, y):
+        for i in range(x - 1, x + 2):
+            for j in range(y - 1, y + 2):
+                if self.board[i][j].have_town():
+                    if not self.board[x][y].have_unit():
+                        self.board[x][y].add_settlers(Settlers(x, y, self))
+                        return
+
+    def get_town(self, x, y):
+        return self.board[x][y].get_town()
+
+    def change_cell(self, x1, y1):
+        x = self.x_to_change
+        y = self.y_to_change
+        print(f'С {x} {y} на {x1} {y1}')
+        dop = self.board[x][y].get_unit()
+        if dop is None:
+            return
+        self.board[x][y].del_unit()
+        self.board[x1][y1].add_unit(dop)
+
+
 class Cell:
 
     def __init__(self, coords: list, cell_size, board, x, y):
@@ -234,22 +279,24 @@ class Cell:
         self.board = board
         self.x = x
         self.y = y
-        self.town = ''
+        self.town = None
+        self.unit = None
         self.town_on_cell = False
         self.unit_on_cell = False
 
     def render(self):
         """Основная функция отрисовки"""
         pygame.draw.polygon(self.board.screen2, pygame.Color('black'), self.coords, 4)
-        if not self.town_on_cell:
-            pygame.draw.polygon(self.board.screen2, self.color, self.coords)
-        # if self.unit_on_cell:
-        #     self.unit.render(self.coords, self.cell_size, self.board.screen2)
+        pygame.draw.polygon(self.board.screen2, self.color, self.coords)
+        if self.unit_on_cell:
+            self.unit.render(self.coords, self.cell_size, self.board.screen2)
         if self.town_on_cell:
             self.town.render(self.coords, self.cell_size, self.board.screen2)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
+        x += 500
+        y += 500
         coords = self.coords
         fl = True
         for v in range(-1, 1):
@@ -287,14 +334,21 @@ class Cell:
         """Изменить размер клетки"""
         if type == 1:
             for i in range(len(self.coords)):
-                self.coords[i] = (self.coords[i][0] * 1.05 - 32, self.coords[i][1] * 1.05 - 18)
+                self.coords[i] = [self.coords[i][0] * 1.05 - 32, self.coords[i][1] * 1.05 - 18]
+            self.cell_size *= 1.03
         if type == -1:
             for i in range(len(self.coords)):
-                self.coords[i] = ((self.coords[i][0] + 32) / 1.05, (self.coords[i][1] + 18) / 1.05)
+                self.coords[i] = [(self.coords[i][0] + 32) / 1.05, (self.coords[i][1] + 18) / 1.05]
+            self.cell_size /= 1.03
 
     def get_coords(self):
         """Возвращает координаты клетки"""
         return self.coords
+
+    def get_town(self):
+        if self.town_on_cell:
+            return self.town
+        return False
 
     def add_town(self):
         """Добавление города"""
@@ -302,9 +356,41 @@ class Cell:
         for i in range(min(0, self.x - 1), min(self.board.get_count_cells_x(), self.x + 2)):
             for j in range(min(0, self.y - 1), min(self.board.get_count_cells_y(), self.y + 2)):
                 dop.append(self.board.get_cell(i, j))
+                # self.board.change_color_cell(i, j, )
         self.town = Town(self.x, self.y, self, dop)
         self.town_on_cell = True
 
-    def add_unit(self, unit):
+    def add_settlers(self, unit):
+        """Добавление поселенцев на клетку"""
         self.unit_on_cell = True
         self.unit = unit
+
+    def have_unit(self):
+        return self.unit_on_cell
+
+    def have_town(self):
+        return self.town_on_cell
+
+    def get_unit(self):
+        if self.unit_on_cell:
+            return self.unit
+
+    def del_unit(self):
+        self.unit_on_cell = False
+        self.unit = None
+
+    def add_unit(self, unit):
+        who = unit.who()
+        if who == 'Settlers':
+            self.add_settlers(unit)
+        elif who == '':
+            pass
+
+    def move_to(self, x, y):
+        self.unit.move(x, y)
+
+    def __copy__(self):
+        return Cell(self.coords, self.cell_size, self.board, self.x, self.y)
+
+    def __str__(self):
+        return ' '.join([str(self.x), str(self.y), str(self.unit)])

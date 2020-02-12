@@ -28,5 +28,5 @@ class Town:
         self.image = load_image('город.png', -1)
 
     def render(self, coords, cell_size, screen):
-        self.image = pygame.transform.scale(self.image, (cell_size - 15, cell_size - 15))
-        screen.blit(self.image, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
+        image = pygame.transform.scale(self.image, (int(cell_size - 15), int(cell_size - 15)))
+        screen.blit(image, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))

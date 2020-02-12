@@ -18,14 +18,13 @@ def load_image(name, colorkey=None):
 class Settlers:
     """Класс Поселенцы"""
 
-    def __init__(self, x, y, town, board):
+    def __init__(self, x, y, board):
         self.x = x
         self.y = y
-        self.town = town
         self.board = board
         self.t_level = 0
         self.t_moving = []
-        self.max_move = 3
+        self.max_move = 1
         self.image = load_image('переселенцы.png', -1)
 
     def move(self, x, y):
@@ -35,7 +34,8 @@ class Settlers:
             if dop is False:
                 return
             self.t_moving = deepcopy(dop)
-        for i in self.t_moving[:self.max_move]:
+        print(self.t_moving)
+        for i in self.t_moving[0:self.max_move]:
             if i == 'down':
                 self.y += 1
             elif i == 'up':
@@ -45,7 +45,7 @@ class Settlers:
             elif i == 'left':
                 self.x -= 1
         self.t_moving = self.t_moving[self.max_move:]
-        self.board.change_cell(dop_x, dop_y, x, y)
+        self.board.change_cell(x, y)
 
     def check_can_move(self, x, y):
         """Проверка можно ли перейти в нужную клетку"""
@@ -82,7 +82,6 @@ class Settlers:
                             pathArr[y][x - 1] = weight
                         if x < (len(pathArr[y]) - 1) and pathArr[y][x + 1] == 0:
                             pathArr[y][x + 1] = weight
-
                         if (abs(y - finPoint[0]) + abs(x - finPoint[1])) == 1:
                             pathArr[finPoint[0]][finPoint[1]] = weight
                             return True
@@ -110,9 +109,11 @@ class Settlers:
         return result[1:]
 
     def render(self, coords, cell_size, screen):
-        self.image = pygame.transform.scale(self.image, (cell_size, cell_size))
-        coords_rect = [((coords[2][0] + coords[3][0]) // 2, (coords[2][1] + coords[3][1]) // 2),
-                       ((coords[3][0] + coords[4][0]) // 2, (coords[3][1] + coords[4][1]) // 2),
-                       ((coords[5][0] + coords[0][0]) // 2, (coords[5][1] + coords[0][1]) // 2),
-                       ((coords[0][0] + coords[1][0]) // 2, (coords[0][1] + coords[1][1]) // 2)]
-        screen.blit(self.image, (coords_rect[0][0], coords_rect[0][1]))
+        dop = pygame.transform.scale(self.image, (int(cell_size - 15), int(cell_size - 15)))
+        screen.blit(dop, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
+
+    def who(self):
+        return 'Settlers'
+
+    def __str__(self):
+        return 'Settlers'
