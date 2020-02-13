@@ -1,7 +1,7 @@
 import pygame
 from win32api import GetSystemMetrics
 from cell import Board
-from town import Town
+from town import Country
 from units import Settlers
 
 pygame.init()
@@ -9,7 +9,7 @@ MONITOR_width = GetSystemMetrics(0)
 MONITOR_height = GetSystemMetrics(1)
 size = (MONITOR_width, MONITOR_height)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-screen.fill((0, 0, 0))
+screen.fill((128, 128, 128))
 fps = 60
 clock = pygame.time.Clock()
 board = Board(60, 30, 60, MONITOR_width, MONITOR_height)
@@ -18,6 +18,7 @@ MOUSEMOTION = False
 MOUSE_BUTTON_PRESSED = False
 K_MOVE = 2
 x, y = 0, 0
+country = Country('Россия')
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -40,6 +41,12 @@ while running:
                 board.init_settlers()
             elif event.key == pygame.K_2:
                 board.init_builders()
+            elif event.key == pygame.K_f:
+                board.init_ferma()
+            elif event.key == pygame.K_3:
+                board.init_warriors()
+            elif event.key == pygame.K_a:
+                board.activate_battle_mode()
             elif event.key == pygame.K_RETURN:
                 board.next_move()
         elif event.type == pygame.MOUSEBUTTONUP:
@@ -52,7 +59,7 @@ while running:
             MOUSEMOTION = True
     clock.tick(fps)
     screen.fill((0, 0, 0))
-    board.screen2.fill((0, 0, 0))
     board.render(screen)
+    country.render(screen, MONITOR_width, MONITOR_height)
     pygame.display.flip()
 pygame.quit()

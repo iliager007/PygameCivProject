@@ -1,6 +1,8 @@
 import pygame
 import os
 
+COLOR_COUNTRIES = {'Россия': []}
+
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -27,7 +29,7 @@ class Town:
         self.name = pygame.font.Font(None, self.name_size)
         self.image = load_image('город.png', -1)
         self.amount_of_food = 0  # первоначальное количество еды
-        self.growth_of_food = 3  # прирост еды
+        self.growth_of_food = 0  # прирост еды
 
     def render(self, coords, cell_size, screen):
         image = pygame.transform.scale(self.image, (int(cell_size - 15), int(cell_size - 15)))
@@ -35,3 +37,20 @@ class Town:
 
     def next_move(self):
         self.amount_of_food += self.growth_of_food
+
+
+class Country:
+
+    def __init__(self, name, board, *units):
+        self.name = name
+        self.units = units
+
+    def render(self, screen, width, height):
+        """Рисуем название страны"""
+        font = pygame.font.Font(None, 50)
+        text = font.render(self.name, 1, (0, 0, 0))
+        text_x = width - text.get_width()
+        text_y = text.get_height()
+        screen.blit(text, (text_x, text_y))
+        """Рисуем информацию об активном юните"""
+

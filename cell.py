@@ -30,6 +30,7 @@ class Board:
         self.active_cell = None
         self.x_to_change = 0
         self.y_to_change = 0
+        self.battle_mod = False
         self.initBoard()
         self.generate_field()
 
@@ -58,6 +59,7 @@ class Board:
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
+        self.screen2.fill((128, 128, 128))
         for i in self.board:
             for j in i:
                 j.render()
@@ -79,16 +81,43 @@ class Board:
             for j in range(self.count_y):
                 if self.board[i][j].check_is_pressed(x, y):
                     print(i, j)
-                    if self.active_cell is None or self.board[i][j].have_unit() or self.board[i][j].have_town():
+                    if self.active_cell is None or (self.board[i][j].have_unit() and not self.battle_mod) or self.board[i][j].have_town():
                         self.active_cell = (i, j)
                     else:
-                        if self.board[self.active_cell[0]][self.active_cell[1]].have_town():
-                            pass
+                        if self.battle_mod:
+                            try:
+                                distance = self.board[self.active_cell[0]][self.active_cell[1]].unit.get_distance(i, j)
+                                max_move = self.board[self.active_cell[0]][self.active_cell[1]].unit.get_max_move()
+                                if distance > max_move:
+                                    self.x_to_change = self.active_cell[0]
+                                    self.y_to_change = self.active_cell[1]
+                                    self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, j)
+                                else:
+                                    self.attack(i, j)
+                                    self.battle_mod = False
+                            except TypeError:
+                                return
+                            except AttributeError:
+                                return
                         elif self.board[self.active_cell[0]][self.active_cell[1]].have_unit():
                             self.x_to_change = self.active_cell[0]
                             self.y_to_change = self.active_cell[1]
                             self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, j)
                         self.active_cell = None
+
+    def attack(self, x, y):
+        """Атаковать юнит на клетке x, y"""
+        x1, y1 = self.active_cell
+        if self.board[x][y].unit.who() != 'Warriors':
+            return
+        self.board[x][y].unit.get_damage(self.board[x1][y1].unit.take_damage())
+        self.board[x1][y1].unit.moveble = True
+        if self.board[x][y].unit.health <= 0:
+            self.board[x][y].unit = None
+            self.board[x][y].unit_on_cell = False
+
+    def activate_battle_mode(self):
+        self.battle_mod = True
 
     def zoom(self, koef):
         """Изменение размеров клеток"""
@@ -319,7 +348,7 @@ class Board:
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Builders(i, j, self))
+                        self.board[i][j].add_unit(Builders(i, j, self.board[x][y].get_town(), self))
                         return
         else:
             for i in range(x - 1, x + 2):
@@ -327,11 +356,46 @@ class Board:
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Builders(i, j, self))
+                        self.board[i][j].add_unit(Builders(i, j, self.board[x][y].get_town(), self))
                         return
 
     def get_coords(self):
+        """Возращает текущие координаты левого верзнего угла второго экрана"""
         return self.x, self.y
+
+    def init_ferma(self):
+        try:
+            if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Builders':
+                self.board[self.active_cell[0]][self.active_cell[1]].add_ferma(
+                    self.board[self.active_cell[0]][self.active_cell[1]].unit.get_town())
+                self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
+        except TypeError:
+            return
+        except AttributeError:
+            return
+
+    def init_warriors(self):
+        if self.active_cell is None:
+            return
+        x, y = self.active_cell
+        if not self.board[x][y].have_town():
+            return
+        if x % 2 == 0:
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_unit(Warriors(i, j, self))
+                        return
+        else:
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_unit(Warriors(i, j, self))
+                        return
 
 
 class Cell:
@@ -351,15 +415,20 @@ class Cell:
         self.unit = None
         self.town_on_cell = False
         self.unit_on_cell = False
+        self.ferma_on_cell = False
 
     def render(self):
         """Основная функция отрисовки"""
         pygame.draw.polygon(self.board.screen2, pygame.Color('black'), self.coords, 4)
         pygame.draw.polygon(self.board.screen2, self.color, self.coords)
-        if self.unit_on_cell:
-            self.unit.render(self.coords, self.cell_size, self.board.screen2)
         if self.town_on_cell:
             self.town.render(self.coords, self.cell_size, self.board.screen2)
+        if self.ferma_on_cell:
+            dop = pygame.transform.scale(self.image_ferma, (int(self.cell_size - 15), int(self.cell_size - 15)))
+            self.board.screen2.blit(dop, (
+                (self.coords[0][0] + self.coords[5][0]) // 2 - 8, (self.coords[0][1] + self.coords[5][1]) // 2 - 3))
+        if self.unit_on_cell:
+            self.unit.render(self.coords, self.cell_size, self.board.screen2)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -466,6 +535,8 @@ class Cell:
             self.add_settlers(unit)
         elif who == 'Builders':
             self.add_builders(unit)
+        elif who == 'Warriors':
+            self.add_warriors(unit)
 
     def move_to(self, x, y):
         """Передвижение юнита на координаты x, y"""
@@ -482,6 +553,19 @@ class Cell:
     def next_move(self):
         """Следующий ход"""
         if self.unit_on_cell:
+            self.unit.update()
             self.unit.next_move()
         if self.town_on_cell:
             self.town.next_move()
+
+    def add_ferma(self, town):
+        """Добавляет ферму в клетку"""
+        if not self.ferma_on_cell:
+            self.ferma_on_cell = True
+            town.growth_of_food += 3
+            self.image_ferma = load_image('ферма.png', -1)
+
+    def add_warriors(self, unit):
+        """Добавление воинов на клетку"""
+        self.unit_on_cell = True
+        self.unit = unit
