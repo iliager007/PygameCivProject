@@ -1,7 +1,7 @@
 import pygame
 import random
 from town import Town
-from units import Settlers
+from units import *
 
 
 class Board:
@@ -64,6 +64,7 @@ class Board:
         screen.blit(self.screen2, (self.x + 100, self.y + 100))
 
     def __copy__(self):
+        """Копия доски"""
         dop = []
         for i in self.board:
             dop1 = []
@@ -245,19 +246,22 @@ class Board:
             self.board[x][y].add_town()
         except TypeError:
             return
+        except AttributeError:
+            return
 
     def get_cell(self, x, y):
         """Возвращает клетку с координатами x, y"""
         return self.board[x][y]
 
     def get_town(self, x, y):
+        """Достает город из клетки x, y"""
         return self.board[x][y].get_town()
 
     def change_cell(self, x1, y1, x=-1, y=-1):
+        """Меняем юнита на двух клетках"""
         if x == y == -1:
             x = self.x_to_change
             y = self.y_to_change
-        print(f'С {x} {y} на {x1} {y1}')
         dop = self.board[x][y].get_unit()
         if dop is None:
             return
@@ -265,6 +269,7 @@ class Board:
         self.board[x1][y1].add_unit(dop)
 
     def init_settlers(self, x=-1, y=-1, pr='OLD'):
+        """Создаем поселенцев"""
         if self.active_cell is None and pr == 'OLD':
             return
         if x == y == -1:
@@ -274,24 +279,25 @@ class Board:
             return
         if not self.board[x][y].have_town():
             return
-        if y % 2 == 0:
+        if x % 2 == 0:
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_unit(Settlers(i, j, self))
+                        return
+        else:
             for i in range(x - 1, x + 2):
                 for j in range(y - 1, y + 2):
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_settlers(Settlers(i, j, self))
-                        return
-        else:
-            for i in range(x - 1, x + 2):
-                for j in range(y, y + 3):
-                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
-                        continue
-                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_settlers(Settlers(i, j, self))
+                        self.board[i][j].add_unit(Settlers(i, j, self))
                         return
 
     def next_move(self):
+        """Следующий ход"""
         dop = []
         for i in self.board:
             for j in i:
@@ -300,8 +306,36 @@ class Board:
         for i in dop:
             i.next_move()
 
+    def init_builders(self):
+        """Создаем строителей вокруг города"""
+        if self.active_cell is None:
+            return
+        x, y = self.active_cell
+        if not self.board[x][y].have_town():
+            return
+        if x % 2 == 0:
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_unit(Builders(i, j, self))
+                        return
+        else:
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                        continue
+                    if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
+                        self.board[i][j].add_unit(Builders(i, j, self))
+                        return
+
+    def get_coords(self):
+        return self.x, self.y
+
 
 class Cell:
+    """Класс игровой клетки"""
 
     def __init__(self, coords: list, cell_size, board, x, y):
         """Создаем клетку и задаем её координаты"""
@@ -329,8 +363,8 @@ class Cell:
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
-        x += 500
-        y += 500
+        x += 500 - (600 + self.board.get_coords()[0])
+        y += 500 - (600 + self.board.get_coords()[1])
         coords = self.coords
         fl = True
         for v in range(-1, 1):
@@ -351,7 +385,7 @@ class Cell:
             return False
 
     def change_type(self, type):
-        """Меняем тип клетки и загружаем её фоновое изображение"""
+        """Меняем тип клетки и задаем ее цвет"""
         self.type = type
         if type == 'Forest':
             self.color = pygame.Color('#013220')
@@ -380,6 +414,7 @@ class Cell:
         return self.coords
 
     def get_town(self):
+        """Возращает город, если он существует"""
         if self.town_on_cell:
             return self.town
         return False
@@ -401,37 +436,51 @@ class Cell:
         self.unit_on_cell = True
         self.unit = unit
 
+    def add_builders(self, unit):
+        """Добавление строителей в клетку"""
+        self.unit_on_cell = True
+        self.unit = unit
+
     def have_unit(self):
+        """Определяет есть ли в клетке юнит"""
         return self.unit_on_cell
 
     def have_town(self):
+        """Определяет есть в клетке город"""
         return self.town_on_cell
 
     def get_unit(self):
+        """Возвращает юнит, если тот существует"""
         if self.unit_on_cell:
             return self.unit
 
     def del_unit(self):
+        """Удаление юнита из клетки"""
         self.unit_on_cell = False
         self.unit = None
 
     def add_unit(self, unit):
+        """Добавление юнита в клетку"""
         who = unit.who()
         if who == 'Settlers':
             self.add_settlers(unit)
-        elif who == '':
-            pass
+        elif who == 'Builders':
+            self.add_builders(unit)
 
     def move_to(self, x, y):
+        """Передвижение юнита на координаты x, y"""
         self.unit.move(x, y)
 
     def __copy__(self):
+        """Возращает копию клетки"""
         return Cell(self.coords, self.cell_size, self.board, self.x, self.y)
 
     def __str__(self):
+        """Приводит клетку в виду: x-координата y-координата юнит на этой клетке"""
         return ' '.join([str(self.x), str(self.y), str(self.unit)])
 
     def next_move(self):
+        """Следующий ход"""
         if self.unit_on_cell:
             self.unit.next_move()
         if self.town_on_cell:

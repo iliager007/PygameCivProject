@@ -38,8 +38,9 @@ while running:
                 board.init_town(-1, -1)
             elif event.key == pygame.K_1:
                 board.init_settlers()
+            elif event.key == pygame.K_2:
+                board.init_builders()
             elif event.key == pygame.K_RETURN:
-                print('ENTER IS PRESSED')
                 board.next_move()
         elif event.type == pygame.MOUSEBUTTONUP:
             MOUSE_BUTTON_PRESSED = False
