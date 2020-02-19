@@ -1,5 +1,6 @@
 import pygame
 import os
+from random import randint
 
 COLOR_COUNTRIES = {'Россия': []}
 
@@ -18,17 +19,18 @@ def load_image(name, colorkey=None):
 
 class Town:
 
-    def __init__(self, x, y, cell, cells):
+    def __init__(self, x, y, cell, cells, country):
         """Города - основная единица страны"""
         self.x = x
         self.y = y
         self.parent_cell = cell
         self.name_size = 10
         self.cells = cells
+        self.country = country
         self.coords = cell.get_coords()
         self.name = pygame.font.Font(None, self.name_size)
         self.image = load_image('город.png', -1)
-        self.amount_of_food = 0  # первоначальное количество еды
+        self.amount_of_food = 20  # первоначальное количество еды
         self.growth_of_food = 0  # прирост еды
 
     def render(self, coords, cell_size, screen):
@@ -37,13 +39,30 @@ class Town:
 
     def next_move(self):
         self.amount_of_food += self.growth_of_food
+        self.country.food += self.growth_of_food
 
 
 class Country:
 
-    def __init__(self, name, board, *units):
+    def __init__(self, name, board):
         self.name = name
-        self.units = units
+        self.board = board
+        self.t_food = 0
+        self.food = 20
+        self.t_stone = 0
+        self.stone = 0
+        self.units = []
+        self.set_parameters()
+
+    def set_parameters(self):
+        dop = self.board.get_size()
+        if dop is None:
+            return
+        dop_x, dop_y = dop
+        x, y = randint(0, dop_x - 1), randint(0, dop_y - 1)
+        while self.board.get_cell(x, y).type == 'Ocean':
+            x, y = randint(0, dop_x - 1), randint(0, dop_y - 1)
+        self.board.init_settlers(self, x, y, 'NEW')
 
     def render(self, screen, width, height):
         """Рисуем название страны"""
@@ -52,5 +71,32 @@ class Country:
         text_x = width - text.get_width()
         text_y = text.get_height()
         screen.blit(text, (text_x, text_y))
+        """Рисуем информацию о ресурсах"""
+        t_food = font.render(f'Текущий прирост еды: {self.t_food}', 1, (0, 0, 0))
+        t_food_x = width - t_food.get_width()
+        t_food_y = t_food.get_height() * 2
+        screen.blit(t_food, (t_food_x, t_food_y))
+        t_stone = font.render(f'Текущий прирост камня: {self.t_stone}', 1, (0, 0, 0))
+        t_stone_x = width - t_stone.get_width()
+        t_stone_y = t_stone.get_height() * 3
+        screen.blit(t_stone, (t_stone_x, t_stone_y))
+        food = font.render(f'Текущее количество еды: {self.food}', 1, (0, 0, 0))
+        food_x = width - food.get_width()
+        food_y = food.get_height() * 4
+        screen.blit(food, (food_x, food_y))
+        stone = font.render(f'Текущее количество камня: {self.stone}', 1, (0, 0, 0))
+        stone_x = width - stone.get_width()
+        stone_y = stone.get_height() * 5
+        screen.blit(stone, (stone_x, stone_y))
         """Рисуем информацию об активном юните"""
-
+        unit = self.board.get_active_unit()
+        if not unit or unit.country.name != self.name:
+            return
+        name = font.render(f'Юнит: {unit.who()}', 1, (0, 0, 0))
+        name_x = width - name.get_width()
+        name_y = name.get_height() * 6
+        health = font.render(f'Здоровье: {unit.health}', 1, (0, 0, 0))
+        health_x = width - health.get_width()
+        health_y = health.get_height() * 7
+        screen.blit(name, (name_x, name_y))
+        screen.blit(health, (health_x, health_y))

@@ -1,5 +1,5 @@
-import pygame
 import random
+
 from town import Town
 from units import *
 
@@ -27,12 +27,16 @@ class Board:
         self.screen2 = pygame.Surface(((count_cells_y + 3) * cell_size + 2200, (count_cells_x - 6) * cell_size + 5200))
         self.x = -600
         self.y = -600
-        self.active_cell = None
+        self.active_cell = (0, 0)
         self.x_to_change = 0
         self.y_to_change = 0
         self.battle_mod = False
+        self.active_country = None
         self.initBoard()
         self.generate_field()
+
+    def get_size(self):
+        return self.count_x, self.count_y
 
     def initBoard(self):
         """Заполняем игровую площадь клетками Cell"""
@@ -55,7 +59,6 @@ class Board:
                               [j * x + 600, 4 / 6 * (i - 1) * x + 4 / 3 * x + 600],
                               [j * x + 600, 4 / 6 * (i - 1) * x + x + 600]]
                     self.board[i][j] = Cell(coords, self.cell_size, self, i, j)
-        self.init_settlers(7, 6, 'NEW')
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
@@ -81,8 +84,15 @@ class Board:
             for j in range(self.count_y):
                 if self.board[i][j].check_is_pressed(x, y):
                     print(i, j)
-                    if self.active_cell is None or (self.board[i][j].have_unit() and not self.battle_mod) or self.board[i][j].have_town():
-                        self.active_cell = (i, j)
+                    if self.active_cell is None or (self.board[i][j].have_unit() and not self.battle_mod) or \
+                            self.board[i][j].have_town():
+                        if self.board[i][j].have_unit():
+                            if self.board[i][j].unit.country.name == self.active_country.name:
+                                self.active_cell = (i, j)
+                                print(self.board[i][j].unit.country.name, self.active_country.name)
+                        elif self.board[i][j].have_town():
+                            if self.board[i][j].town.country.name == self.active_country.name:
+                                self.active_cell = (i, j)
                     else:
                         if self.battle_mod:
                             try:
@@ -91,7 +101,7 @@ class Board:
                                 if distance > max_move:
                                     self.x_to_change = self.active_cell[0]
                                     self.y_to_change = self.active_cell[1]
-                                    self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, j)
+                                    self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, max(0, j - 1))
                                 else:
                                     self.attack(i, j)
                                     self.battle_mod = False
@@ -105,6 +115,23 @@ class Board:
                             self.board[self.active_cell[0]][self.active_cell[1]].move_to(i, j)
                         self.active_cell = None
 
+    def get_active_unit(self):
+        if self.active_cell is None:
+            return False
+        x, y = self.active_cell
+        if self.board[x][y].have_unit():
+            return self.board[x][y].get_unit()
+
+    def heal(self):
+        try:
+            x, y = self.active_cell
+            if self.board[x][y].unit.who() == 'Warriors':
+                self.board[x][y].unit.heal()
+        except TypeError:
+            return
+        except AttributeError:
+            return
+
     def attack(self, x, y):
         """Атаковать юнит на клетке x, y"""
         x1, y1 = self.active_cell
@@ -117,6 +144,7 @@ class Board:
             self.board[x][y].unit_on_cell = False
 
     def activate_battle_mode(self):
+        print('Battle')
         self.battle_mod = True
 
     def zoom(self, koef):
@@ -265,14 +293,14 @@ class Board:
         """Возвращает количество клеток по высоте"""
         return self.count_y
 
-    def init_town(self, x, y):
+    def init_town(self, x, y, country):
         """Создает город в клетке с координатами x, y"""
         try:
             if x == y == -1:
                 if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Settlers':
-                    self.board[self.active_cell[0]][self.active_cell[1]].add_town()
+                    self.board[self.active_cell[0]][self.active_cell[1]].add_town(country)
                     self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
-            self.board[x][y].add_town()
+            self.board[x][y].add_town(country)
         except TypeError:
             return
         except AttributeError:
@@ -297,14 +325,14 @@ class Board:
         self.board[x][y].del_unit()
         self.board[x1][y1].add_unit(dop)
 
-    def init_settlers(self, x=-1, y=-1, pr='OLD'):
+    def init_settlers(self, country, x=-1, y=-1, pr='OLD'):
         """Создаем поселенцев"""
         if self.active_cell is None and pr == 'OLD':
             return
         if x == y == -1:
             x, y = self.active_cell
         if pr == 'NEW':
-            self.board[x][y].add_settlers(Settlers(x, y, self))
+            self.board[x][y].add_settlers(Settlers(x, y, country, self))
             return
         if not self.board[x][y].have_town():
             return
@@ -314,7 +342,7 @@ class Board:
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Settlers(i, j, self))
+                        self.board[i][j].add_unit(Settlers(i, j, country, self))
                         return
         else:
             for i in range(x - 1, x + 2):
@@ -322,10 +350,10 @@ class Board:
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Settlers(i, j, self))
+                        self.board[i][j].add_unit(Settlers(i, j, country, self))
                         return
 
-    def next_move(self):
+    def next_move(self, country):
         """Следующий ход"""
         dop = []
         for i in self.board:
@@ -333,7 +361,13 @@ class Board:
                 if j.have_unit() or j.have_town():
                     dop.append(j)
         for i in dop:
-            i.next_move()
+            try:
+                if i.unit.country.name == self.active_country.name:
+                    i.next_move()
+            except AttributeError:
+                if i.town.country.name == self.active_country.name:
+                    i.next_move()
+        self.active_country = country
 
     def init_builders(self):
         """Создаем строителей вокруг города"""
@@ -363,7 +397,7 @@ class Board:
         """Возращает текущие координаты левого верзнего угла второго экрана"""
         return self.x, self.y
 
-    def init_ferma(self):
+    def init_ferma(self, country):
         try:
             if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Builders':
                 self.board[self.active_cell[0]][self.active_cell[1]].add_ferma(
@@ -374,7 +408,7 @@ class Board:
         except AttributeError:
             return
 
-    def init_warriors(self):
+    def init_warriors(self, country):
         if self.active_cell is None:
             return
         x, y = self.active_cell
@@ -386,7 +420,7 @@ class Board:
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Warriors(i, j, self))
+                        self.board[i][j].add_unit(Warriors(i, j, country, self))
                         return
         else:
             for i in range(x - 1, x + 2):
@@ -458,6 +492,8 @@ class Cell:
         self.type = type
         if type == 'Forest':
             self.color = pygame.Color('#013220')
+            hsv = self.color.hsva
+            self.color.hsva = (hsv[0] + 10, hsv[1], hsv[2], hsv[3])
         elif type == 'Meadow':
             self.color = pygame.Color('#228b22')
         elif type == 'Ocean':
@@ -488,14 +524,14 @@ class Cell:
             return self.town
         return False
 
-    def add_town(self):
+    def add_town(self, country):
         """Добавление города"""
         dop = []
         for i in range(min(0, self.x - 1), min(self.board.get_count_cells_x(), self.x + 2)):
             for j in range(min(0, self.y - 1), min(self.board.get_count_cells_y(), self.y + 2)):
                 dop.append(self.board.get_cell(i, j))
                 # self.board.change_color_cell(i, j, )
-        self.town = Town(self.x, self.y, self, dop)
+        self.town = Town(self.x, self.y, self, dop, country)
         self.town_on_cell = True
         self.unit_on_cell = False
         self.unit = None
@@ -563,6 +599,7 @@ class Cell:
         if not self.ferma_on_cell:
             self.ferma_on_cell = True
             town.growth_of_food += 3
+            town.country.t_food += 3
             self.image_ferma = load_image('ферма.png', -1)
 
     def add_warriors(self, unit):

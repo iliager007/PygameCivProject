@@ -18,7 +18,9 @@ MOUSEMOTION = False
 MOUSE_BUTTON_PRESSED = False
 K_MOVE = 2
 x, y = 0, 0
-country = Country('Россия')
+countries = [Country('Россия', board), Country('Япония', board)]
+i = 0
+board.active_country = countries[i]
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -36,19 +38,22 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
             elif event.key == pygame.K_SPACE:
-                board.init_town(-1, -1)
+                board.init_town(-1, -1, countries[i])
             elif event.key == pygame.K_1:
-                board.init_settlers()
+                board.init_settlers(countries[i])
             elif event.key == pygame.K_2:
                 board.init_builders()
             elif event.key == pygame.K_f:
-                board.init_ferma()
+                board.init_ferma(countries[i])
             elif event.key == pygame.K_3:
-                board.init_warriors()
+                board.init_warriors(countries[i])
             elif event.key == pygame.K_a:
                 board.activate_battle_mode()
+            elif event.key == pygame.K_h:
+                board.heal()
             elif event.key == pygame.K_RETURN:
-                board.next_move()
+                i = (i + 1) % len(countries)
+                board.next_move(countries[i])
         elif event.type == pygame.MOUSEBUTTONUP:
             MOUSE_BUTTON_PRESSED = False
             MOUSEMOTION = False
@@ -60,6 +65,6 @@ while running:
     clock.tick(fps)
     screen.fill((0, 0, 0))
     board.render(screen)
-    country.render(screen, MONITOR_width, MONITOR_height)
+    countries[i].render(screen, MONITOR_width, MONITOR_height)
     pygame.display.flip()
 pygame.quit()

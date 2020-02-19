@@ -18,12 +18,13 @@ def load_image(name, colorkey=None):
 class Settlers:
     """Класс Поселенцы"""
 
-    def __init__(self, x, y, board):
+    def __init__(self, x, y, country, board):
         self.x = x
         self.y = y
+        self.country = country
         self.board = board
         self.t_level = 0
-        self.country = '1'
+        self.health = 20
         self.t_moving = []
         self.max_move = 1
         self.count_move = 0
@@ -146,10 +147,11 @@ class Builders:
         self.town = town
         self.moveble = False
         self.board = board
-        self.country = '1'
+        self.country = town.country
         self.t_level = 0
         self.t_moving = []
         self.max_move = 1
+        self.health = 20
         self.count_move = 0
         self.image = load_image('строители.png', -1)
 
@@ -264,11 +266,12 @@ class Builders:
 
 class Warriors:
 
-    def __init__(self, x, y, board):
+    def __init__(self, x, y, country, board):
         self.x = x
         self.y = y
         self.moveble = False
         self.board = board
+        self.country = country
         self.health = 20
         self.max_health = 20
         self.country = '1'
@@ -403,7 +406,11 @@ class Warriors:
         return self.max_move
 
     def take_damage(self):
+        print('Damage')
         return self.damage
 
     def get_damage(self, damage):
         self.health -= damage
+
+    def country(self):
+        return self.country
