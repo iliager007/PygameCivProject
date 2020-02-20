@@ -14,6 +14,7 @@ class Board:
         Третий - размер клеток
         Четвертый и пятый - размеры мониторы
         """
+        self.cities_and_belonging = [[('Neutral', False) for _ in range(count_cells_y)] for __ in range(count_cells_x)]
         self.MONITOR_width = MONITOR_width
         self.MONITOR_height = MONITOR_height
         self.MAX_ZOOM = 15
@@ -34,6 +35,7 @@ class Board:
         self.active_country = None
         self.initBoard()
         self.generate_field()
+
 
     def get_size(self):
         return self.count_x, self.count_y
@@ -437,6 +439,7 @@ class Cell:
 
     def __init__(self, coords: list, cell_size, board, x, y):
         """Создаем клетку и задаем её координаты"""
+        self.color = pygame.Color('Black')
         self.coords = coords
         self.cell_size = cell_size
         self.color = ''
@@ -463,6 +466,52 @@ class Cell:
                 (self.coords[0][0] + self.coords[5][0]) // 2 - 8, (self.coords[0][1] + self.coords[5][1]) // 2 - 3))
         if self.unit_on_cell:
             self.unit.render(self.coords, self.cell_size, self.board.screen2)
+        cities_and_belonging = self.board.cities_and_belonging
+        i = self.x
+        j = self.y
+        size_x = self.board.get_count_cells_x()
+        size_y = self.board.get_count_cells_y()
+        if i % 2 == 1:
+            if i >= 1 and j >= 1:
+                if cities_and_belonging[i - 1][j - 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[5], self.coords[0], 4)
+            if i >= 1:
+                if cities_and_belonging[i - 1][j][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[0], self.coords[1], 4)
+            if j < size_y - 1:
+                if cities_and_belonging[i][j + 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[1], self.coords[2], 4)
+            if i < size_x - 1:
+                if cities_and_belonging[i + 1][j][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[2], self.coords[3], 4)
+            if i < size_x - 1 and j >= 1:
+                if cities_and_belonging[i + 1][j - 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[3], self.coords[4], 4)
+            if j >= 1:
+                if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[4], self.coords[5], 4)
+        if i % 2 == 0:
+            if i >= 1:
+                if cities_and_belonging[i - 1][j][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[5], self.coords[0], 4)
+            if i >= 1 and j < size_y - 1:
+                if cities_and_belonging[i - 1][j + 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[0], self.coords[1], 4)
+            if j < size_y - 1:
+                if cities_and_belonging[i][j + 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[1], self.coords[2], 4)
+            if i < size_x - 1 and j < size_y - 1:
+                if cities_and_belonging[i + 1][j + 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[2], self.coords[3], 4)
+            if i < size_x - 1:
+                if cities_and_belonging[i + 1][j][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[3], self.coords[4], 4)
+            if j >= 1:
+                if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
+                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[4], self.coords[5], 4)
+
+
+
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -526,15 +575,57 @@ class Cell:
 
     def add_town(self, country):
         """Добавление города"""
+        cities_and_belonging = self.board.cities_and_belonging
         dop = []
-        for i in range(min(0, self.x - 1), min(self.board.get_count_cells_x(), self.x + 2)):
-            for j in range(min(0, self.y - 1), min(self.board.get_count_cells_y(), self.y + 2)):
-                dop.append(self.board.get_cell(i, j))
-                # self.board.change_color_cell(i, j, )
+        i = self.x
+        j = self.y
+        size_x = self.board.get_count_cells_x()
+        size_y = self.board.get_count_cells_y()
+        cities_and_belonging[i][j] = (country, True)
+        if i % 2 == 1:
+            if i >= 1 and j >= 1:
+                cities_and_belonging[i - 1][j - 1] = (country, False)
+                dop.append(self.board.get_cell(i - 1, j - 1))
+            if i >= 1:
+                cities_and_belonging[i - 1][j] = (country, False)
+                dop.append(self.board.get_cell(i - 1, j))
+            if j < size_y - 1:
+                cities_and_belonging[i][j + 1] = (country, False)
+                dop.append(self.board.get_cell(i, j + 1))
+            if i < size_x - 1:
+                cities_and_belonging[i + 1][j] = (country, False)
+                dop.append(self.board.get_cell(i + 1, j))
+            if i < size_x - 1 and j >= 1:
+                cities_and_belonging[i + 1][j - 1] = (country, False)
+                dop.append(self.board.get_cell(i + 1, j - 1))
+            if j >= 1:
+                cities_and_belonging[i][j - 1] = (country, False)
+                dop.append(self.board.get_cell(i, j - 1))
+        if i % 2 == 0:
+            if i >= 1:
+                cities_and_belonging[i - 1][j] = (country, False)
+                dop.append(self.board.get_cell(i - 1, j))
+            if i >= 1 and j < size_y - 1:
+                cities_and_belonging[i - 1][j + 1] = (country, False)
+                dop.append(self.board.get_cell(i - 1, j + 1))
+            if j < size_x - 1:
+                cities_and_belonging[i][j + 1] = (country, False)
+                dop.append(self.board.get_cell(i - 1, j + 1))
+            if i < size_x - 1 and j < size_y - 1:
+                cities_and_belonging[i + 1][j + 1] = (country, False)
+                dop.append(self.board.get_cell(i + 1, j + 1))
+            if i < size_x - 1:
+                cities_and_belonging[i + 1][j] = (country, False)
+                dop.append(self.board.get_cell(i + 1, j))
+            if j >= 1:
+                cities_and_belonging[i][j - 1] = (country, False)
+                dop.append(self.board.get_cell(i, j - 1))
         self.town = Town(self.x, self.y, self, dop, country)
         self.town_on_cell = True
         self.unit_on_cell = False
         self.unit = None
+
+
 
     def add_settlers(self, unit):
         """Добавление поселенцев на клетку"""
