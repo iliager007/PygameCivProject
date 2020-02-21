@@ -15,6 +15,7 @@ class Board:
         Четвертый и пятый - размеры мониторы
         """
         self.cities_and_belonging = [[('Neutral', False) for _ in range(count_cells_y)] for __ in range(count_cells_x)]
+        self.color_country = {'Россия': pygame.Color('yellow'), 'Япония': pygame.Color('red'), 'Neutral': pygame.Color('black')}
         self.MONITOR_width = MONITOR_width
         self.MONITOR_height = MONITOR_height
         self.MAX_ZOOM = 15
@@ -474,41 +475,41 @@ class Cell:
         if i % 2 == 1:
             if i >= 1 and j >= 1:
                 if cities_and_belonging[i - 1][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[5], self.coords[0], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[5][0] + 2, self.coords[5][1] + 2), (self.coords[0][0] + 2, self.coords[0][1] + 2), 4)
             if i >= 1:
                 if cities_and_belonging[i - 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[0], self.coords[1], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[0][0] - 2, self.coords[0][1] + 2), (self.coords[1][0] - 2, self.coords[1][1] + 1), 4)
             if j < size_y - 1:
                 if cities_and_belonging[i][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[1], self.coords[2], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[1][0] - 2, self.coords[1][1]), (self.coords[2][0] - 2, self.coords[2][1]), 5)
             if i < size_x - 1:
                 if cities_and_belonging[i + 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[2], self.coords[3], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[2][0] - 2, self.coords[2][1] - 2), (self.coords[3][0] - 2, self.coords[3][1] - 2), 5)
             if i < size_x - 1 and j >= 1:
                 if cities_and_belonging[i + 1][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[3], self.coords[4], 4)
-            if j >= 1:
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[3][0] + 2, self.coords[3][1] - 2), (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
+            if j >= 1: 
                 if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[4], self.coords[5], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[4][0] + 2, self.coords[4][1]), (self.coords[5][0] + 2, self.coords[5][1]), 4)
         if i % 2 == 0:
             if i >= 1:
                 if cities_and_belonging[i - 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[5], self.coords[0], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[5][0] + 2, self.coords[5][1] + 2), (self.coords[0][0] + 2, self.coords[0][1] + 2), 4)
             if i >= 1 and j < size_y - 1:
                 if cities_and_belonging[i - 1][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[0], self.coords[1], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[0][0] - 2, self.coords[0][1] + 2), (self.coords[1][0] - 2, self.coords[1][1] + 2), 4)
             if j < size_y - 1:
                 if cities_and_belonging[i][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[1], self.coords[2], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[1][0] - 2, self.coords[1][1]), (self.coords[2][0] - 2, self.coords[2][1]), 5)
             if i < size_x - 1 and j < size_y - 1:
                 if cities_and_belonging[i + 1][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[2], self.coords[3], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[2][0] - 2, self.coords[2][1] - 2), (self.coords[3][0] - 2, self.coords[3][1] - 2), 5)
             if i < size_x - 1:
                 if cities_and_belonging[i + 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[3], self.coords[4], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[3][0] + 2, self.coords[3][1] - 2), (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
             if j >= 1:
                 if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[4], self.coords[5], 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[4][0] + 2, self.coords[4][1]), (self.coords[5][0] + 2, self.coords[5][1]), 4)
 
 
 
@@ -581,44 +582,44 @@ class Cell:
         j = self.y
         size_x = self.board.get_count_cells_x()
         size_y = self.board.get_count_cells_y()
-        cities_and_belonging[i][j] = (country, True)
+        cities_and_belonging[i][j] = (country.name, True)
         if i % 2 == 1:
             if i >= 1 and j >= 1:
-                cities_and_belonging[i - 1][j - 1] = (country, False)
+                cities_and_belonging[i - 1][j - 1] = (country.name, False)
                 dop.append(self.board.get_cell(i - 1, j - 1))
             if i >= 1:
-                cities_and_belonging[i - 1][j] = (country, False)
+                cities_and_belonging[i - 1][j] = (country.name, False)
                 dop.append(self.board.get_cell(i - 1, j))
             if j < size_y - 1:
-                cities_and_belonging[i][j + 1] = (country, False)
+                cities_and_belonging[i][j + 1] = (country.name, False)
                 dop.append(self.board.get_cell(i, j + 1))
             if i < size_x - 1:
-                cities_and_belonging[i + 1][j] = (country, False)
+                cities_and_belonging[i + 1][j] = (country.name, False)
                 dop.append(self.board.get_cell(i + 1, j))
             if i < size_x - 1 and j >= 1:
-                cities_and_belonging[i + 1][j - 1] = (country, False)
+                cities_and_belonging[i + 1][j - 1] = (country.name, False)
                 dop.append(self.board.get_cell(i + 1, j - 1))
             if j >= 1:
-                cities_and_belonging[i][j - 1] = (country, False)
+                cities_and_belonging[i][j - 1] = (country.name, False)
                 dop.append(self.board.get_cell(i, j - 1))
         if i % 2 == 0:
             if i >= 1:
-                cities_and_belonging[i - 1][j] = (country, False)
+                cities_and_belonging[i - 1][j] = (country.name, False)
                 dop.append(self.board.get_cell(i - 1, j))
             if i >= 1 and j < size_y - 1:
-                cities_and_belonging[i - 1][j + 1] = (country, False)
+                cities_and_belonging[i - 1][j + 1] = (country.name, False)
                 dop.append(self.board.get_cell(i - 1, j + 1))
-            if j < size_x - 1:
-                cities_and_belonging[i][j + 1] = (country, False)
+            if j < size_y - 1:
+                cities_and_belonging[i][j + 1] = (country.name, False)
                 dop.append(self.board.get_cell(i - 1, j + 1))
             if i < size_x - 1 and j < size_y - 1:
-                cities_and_belonging[i + 1][j + 1] = (country, False)
+                cities_and_belonging[i + 1][j + 1] = (country.name, False)
                 dop.append(self.board.get_cell(i + 1, j + 1))
             if i < size_x - 1:
-                cities_and_belonging[i + 1][j] = (country, False)
+                cities_and_belonging[i + 1][j] = (country.name, False)
                 dop.append(self.board.get_cell(i + 1, j))
             if j >= 1:
-                cities_and_belonging[i][j - 1] = (country, False)
+                cities_and_belonging[i][j - 1] = (country.name, False)
                 dop.append(self.board.get_cell(i, j - 1))
         self.town = Town(self.x, self.y, self, dop, country)
         self.town_on_cell = True
