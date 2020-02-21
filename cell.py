@@ -36,7 +36,6 @@ class Board:
         self.initBoard()
         self.generate_field()
 
-
     def get_size(self):
         return self.count_x, self.count_y
 
@@ -329,8 +328,12 @@ class Board:
 
     def init_settlers(self, country, x=-1, y=-1, pr='OLD'):
         """Создаем поселенцев"""
-        if self.active_cell is None and pr == 'OLD':
-            return
+        try:
+            if self.active_cell is None or self.active_country.food <= 0:
+                return
+        except AttributeError:
+            if self.active_cell is None and pr == 'OLD':
+                return
         if x == y == -1:
             x, y = self.active_cell
         if pr == 'NEW':
@@ -345,6 +348,7 @@ class Board:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Settlers(i, j, country, self))
+                        self.active_country.food -= 10
                         return
         else:
             for i in range(x - 1, x + 2):
@@ -353,6 +357,7 @@ class Board:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Settlers(i, j, country, self))
+                        self.active_country.food -= 10
                         return
 
     def next_move(self, country):
@@ -373,8 +378,12 @@ class Board:
 
     def init_builders(self):
         """Создаем строителей вокруг города"""
-        if self.active_cell is None:
-            return
+        try:
+            if self.active_cell is None or self.active_country.food <= 0:
+                return
+        except AttributeError:
+            if self.active_cell is None:
+                return
         x, y = self.active_cell
         if not self.board[x][y].have_town():
             return
@@ -385,6 +394,7 @@ class Board:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Builders(i, j, self.board[x][y].get_town(), self))
+                        self.active_country.food -= 10
                         return
         else:
             for i in range(x - 1, x + 2):
@@ -393,6 +403,7 @@ class Board:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Builders(i, j, self.board[x][y].get_town(), self))
+                        self.active_country.food -= 10
                         return
 
     def get_coords(self):
@@ -411,8 +422,12 @@ class Board:
             return
 
     def init_warriors(self, country):
-        if self.active_cell is None:
-            return
+        try:
+            if self.active_cell is None or self.active_country.food <= 0:
+                return
+        except AttributeError:
+            if self.active_cell is None:
+                return
         x, y = self.active_cell
         if not self.board[x][y].have_town():
             return
@@ -423,6 +438,7 @@ class Board:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Warriors(i, j, country, self))
+                        self.active_country.food -= 10
                         return
         else:
             for i in range(x - 1, x + 2):
@@ -430,20 +446,21 @@ class Board:
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Warriors(i, j, self))
+                        self.board[i][j].add_unit(Warriors(i, j, country, self))
+                        self.active_country.food -= 10
                         return
 
 
 class Cell:
     """Класс игровой клетки"""
 
-    def __init__(self, coords: list, cell_size, board, x, y):
+    def __init__(self, coords: list, cell_size, board, x, y, type='Nothing'):
         """Создаем клетку и задаем её координаты"""
         self.color = pygame.Color('Black')
         self.coords = coords
         self.cell_size = cell_size
         self.color = ''
-        self.type = 'Nothing'
+        self.type = type
         self.sustenance = 0
         self.board = board
         self.x = x
@@ -509,9 +526,6 @@ class Cell:
             if j >= 1:
                 if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
                     pygame.draw.line(self.board.screen2, pygame.Color('red'), self.coords[4], self.coords[5], 4)
-
-
-
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -624,8 +638,6 @@ class Cell:
         self.town_on_cell = True
         self.unit_on_cell = False
         self.unit = None
-
-
 
     def add_settlers(self, unit):
         """Добавление поселенцев на клетку"""

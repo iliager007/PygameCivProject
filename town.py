@@ -44,11 +44,11 @@ class Town:
 
 class Country:
 
-    def __init__(self, name, board):
+    def __init__(self, name, board, food=20, t_food=0):
         self.name = name
         self.board = board
-        self.t_food = 0
-        self.food = 20
+        self.t_food = t_food
+        self.food = food
         self.t_stone = 0
         self.stone = 0
         self.units = []
@@ -76,27 +76,19 @@ class Country:
         t_food_x = width - t_food.get_width()
         t_food_y = t_food.get_height() * 2
         screen.blit(t_food, (t_food_x, t_food_y))
-        t_stone = font.render(f'Текущий прирост камня: {self.t_stone}', 1, (0, 0, 0))
-        t_stone_x = width - t_stone.get_width()
-        t_stone_y = t_stone.get_height() * 3
-        screen.blit(t_stone, (t_stone_x, t_stone_y))
         food = font.render(f'Текущее количество еды: {self.food}', 1, (0, 0, 0))
         food_x = width - food.get_width()
-        food_y = food.get_height() * 4
+        food_y = food.get_height() * 3
         screen.blit(food, (food_x, food_y))
-        stone = font.render(f'Текущее количество камня: {self.stone}', 1, (0, 0, 0))
-        stone_x = width - stone.get_width()
-        stone_y = stone.get_height() * 5
-        screen.blit(stone, (stone_x, stone_y))
         """Рисуем информацию об активном юните"""
         unit = self.board.get_active_unit()
         if not unit or unit.country.name != self.name:
             return
         name = font.render(f'Юнит: {unit.who()}', 1, (0, 0, 0))
         name_x = width - name.get_width()
-        name_y = name.get_height() * 6
+        name_y = name.get_height() * 4
         health = font.render(f'Здоровье: {unit.health}', 1, (0, 0, 0))
         health_x = width - health.get_width()
-        health_y = health.get_height() * 7
+        health_y = health.get_height() * 5
         screen.blit(name, (name_x, name_y))
         screen.blit(health, (health_x, health_y))
