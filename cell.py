@@ -488,7 +488,7 @@ class Cell:
             if i < size_x - 1 and j >= 1:
                 if cities_and_belonging[i + 1][j - 1][0] != cities_and_belonging[i][j][0]:
                     pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[3][0] + 2, self.coords[3][1] - 2), (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
-            if j >= 1: 
+            if j >= 1:
                 if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
                     pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[4][0] + 2, self.coords[4][1]), (self.coords[5][0] + 2, self.coords[5][1]), 4)
         if i % 2 == 0:
