@@ -3,36 +3,40 @@ from cell import Board
 from town import Country
 import sys
 import tkinter
+import os
+
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
 
 
 def get_size_of_desktop():
+    """Возращает размеры монитора"""
     r = tkinter.Tk()
     return r.winfo_screenwidth(), r.winfo_screenheight()
 
 
 def terminate():
+    """Завершает работы"""
     pygame.quit()
     sys.exit()
 
 
 def rules_menu():
-    intro_text = ["Для хода выделите юнит и нажмите на клетку в которую он должен идти",
-                  "Важно, чтобы юнит принадлежал вашей стране",
-                  "Для создания города: выделите поселенцев и нажмите пробел",
-                  "Для создания юнита: выделите город и нажмите клавишу юнита",
-                  "     Поселенец - 1",
-                  "     Строитель - 2",
-                  "     Воин - 3",
-                  "Для строительства ферм выделите строителя и нажмите F",
-                  "Для атаки вражеских юнитов: выделите своего воина и нажмите A, затем укажите щелчком вражеский юнит",
-                  "Помните, что каждый созданный юнит тратит еду",
-                  "Вы можете вылечить юнит, для этого выделите его и нажмите на H",
-                  "Для завершения хода нажмите Enter",
-                  "",
-                  "",
-                  "",
-                  "Для выхода нажмите любую кнопку"]
-    screen.fill((218, 112, 214))
+    intro_text = []
+    with open('data/rules/rules_menu.txt', 'r', encoding='utf-8') as file:
+        dop = file.readlines()
+        for i in dop:
+            intro_text.append(i[:-1])
+    screen.fill(pygame.Color('#98FB98'))
     font = pygame.font.Font(None, 50)
     text_coord = 100
     for line in intro_text:
@@ -57,7 +61,8 @@ def draw_start_menu():
     intro_text = ["Продолжить (1)", "",
                   "Правила игры (2)", "",
                   "Новая игра (3)"]
-    screen.fill((218, 112, 214))
+    fon = pygame.transform.scale(load_image('civilization.png'), (MONITOR_width, MONITOR_height))
+    screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 70)
     text_coord = 50
     for line in intro_text:
@@ -130,15 +135,15 @@ screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 screen.fill((128, 128, 128))
 fps = 60
 clock = pygame.time.Clock()
-# mode = start_menu()
-# x, y, size = None, None, None
-# board = None
-# if mode == 'continue':
-#     with open('data/maps/saves.txt', mode='r', encoding='utf-8') as file:
-#         if file.read() == 'No saves':
-#             new_game()
-#         else:
-#             load_game(file.readlines())
+mode = start_menu()
+x, y, size = None, None, None
+board = None
+if mode == 'continue':
+    with open('data/maps/saves.txt', mode='r', encoding='utf-8') as file:
+        if file.read() == 'No saves':
+            new_game()
+        else:
+            load_game(file.readlines())
 x, y, size = 60, 30, 60
 board = Board(x, y, size, MONITOR_width, MONITOR_height)
 running = True
