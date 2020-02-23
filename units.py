@@ -30,6 +30,7 @@ class Settlers:
         self.count_move = 0
         self.moveble = False
         self.image = load_image('units/settlers.png', -1)
+        country.units_towns.append(self)
 
     def move(self, x, y):
         if self.moveble:
@@ -130,7 +131,7 @@ class Settlers:
         return 'Поселенцы'
 
     def __str__(self):
-        return 'Поселенцы'
+        return 'Settlers'
 
     def update(self):
         self.moveble = False
@@ -144,16 +145,19 @@ class Builders:
     def __init__(self, x, y, town, board):
         self.x = x
         self.y = y
-        self.town = town
         self.moveble = False
         self.board = board
-        self.country = town.country
+        if str(town) == 'Country':
+            self.country = town
+        else:
+            self.country = town.country
         self.t_level = 0
         self.t_moving = []
         self.max_move = 1
         self.health = 20
         self.count_move = 0
         self.image = load_image('units/builders.png', -1)
+        self.country.units_towns.append(self)
 
     def move(self, x, y):
         if self.moveble:
@@ -252,7 +256,7 @@ class Builders:
         return 'Строители'
 
     def __str__(self):
-        return 'Строители'
+        return 'Builders'
 
     def get_town(self):
         return self.town
@@ -266,21 +270,22 @@ class Builders:
 
 class Warriors:
 
-    def __init__(self, x, y, country, board):
+    def __init__(self, x, y, country, board, health=20, lvl=0):
         self.x = x
         self.y = y
         self.first_move = 1
         self.moveble = False
         self.board = board
         self.country = country
-        self.health = 20
-        self.max_health = 20
+        self.health = health
+        self.max_health = lvl * 20 + 20
         self.damage = 10
-        self.t_level = 0
+        self.t_level = lvl
         self.t_moving = []
-        self.max_move = 1
+        self.max_move = 3 + lvl
         self.count_move = 0
         self.image = load_image('units/warrior.png', -1)
+        country.units_towns.append(self)
 
     def move(self, x, y):
         if self.first_move != 0:
@@ -301,7 +306,7 @@ class Warriors:
             return
         self.count_move += 1
         dop_x, dop_y = self.x, self.y
-        for i in self.t_moving[:3]:
+        for i in self.t_moving[:self.max_move]:
             if i == 'down':
                 self.x += 1
             elif i == 'up':
@@ -383,7 +388,7 @@ class Warriors:
         return 'Воины'
 
     def __str__(self):
-        return 'Воины'
+        return 'Warriors'
 
     def get_town(self):
         return self.town

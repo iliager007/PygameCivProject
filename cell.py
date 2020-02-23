@@ -6,7 +6,8 @@ from units import *
 
 class Board:
 
-    def __init__(self, count_cells_y: int, count_cells_x: int, cell_size: int, MONITOR_width, MONITOR_height):
+    def __init__(self, count_cells_y: int, count_cells_x: int, MONITOR_width, MONITOR_height,
+                 generate_field=True):
         """
         Создаем поле игры,
         Первый параметр - количество клеток по ширине,
@@ -29,10 +30,12 @@ class Board:
         self.MIN_ZOOM = -15
         self.count_x = count_cells_x
         self.count_y = count_cells_y
-        self.cell_size = cell_size
+        self.cell_size = 60
         self.board = [[[] for _ in range(count_cells_y)] for __ in range(count_cells_x)]
-        self.rect = [-600, -600, (count_cells_y + 3) * cell_size + 2200, (count_cells_x + 6) * cell_size + 2200]
-        self.screen2 = pygame.Surface(((count_cells_y + 3) * cell_size + 2200, (count_cells_x - 6) * cell_size + 5200))
+        self.rect = [-600, -600, (count_cells_y + 3) * self.cell_size + 2200,
+                     (count_cells_x + 6) * self.cell_size + 2200]
+        self.screen2 = pygame.Surface(
+            ((count_cells_y + 3) * self.cell_size + 2200, (count_cells_x - 6) * self.cell_size + 5200))
         self.x = -600
         self.y = -600
         self.active_cell = (0, 0)
@@ -41,7 +44,8 @@ class Board:
         self.battle_mod = False
         self.active_country = None
         self.initBoard()
-        self.generate_field()
+        if generate_field:
+            self.generate_field()
 
     def get_size(self):
         """Возращает размеры поля"""
@@ -92,13 +96,11 @@ class Board:
         for i in range(self.count_x):
             for j in range(self.count_y):
                 if self.board[i][j].check_is_pressed(x, y):
-                    print(i, j)
                     if self.active_cell is None or (self.board[i][j].have_unit() and not self.battle_mod) or \
                             self.board[i][j].have_town():
                         if self.board[i][j].have_unit():
                             if self.board[i][j].unit.country.name == self.active_country.name:
                                 self.active_cell = (i, j)
-                                print(self.board[i][j].unit.country.name, self.active_country.name)
                         elif self.board[i][j].have_town():
                             if self.board[i][j].town.country.name == self.active_country.name:
                                 self.active_cell = (i, j)
@@ -179,10 +181,10 @@ class Board:
         self.y += y
         if self.x + self.rect[2] < self.MONITOR_width:
             self.x = self.MONITOR_width - self.rect[2]
-        elif self.x > 0:
-            self.x = 0
-        if self.y > 0:
-            self.y = 0
+        elif self.x > -100:
+            self.x = -100
+        if self.y > -100:
+            self.y = -100
         elif self.y + self.rect[3] < self.MONITOR_height:
             self.y = self.MONITOR_height - self.rect[3]
 
@@ -353,8 +355,8 @@ class Board:
         if not self.board[x][y].have_town():
             return
         if x % 2 == 0:
-            for i in range(x - 1, x + 2):
-                for j in range(y - 1, y + 2):
+            for i in range(max(0, x - 1), min(x + 2, self.count_x)):
+                for j in range(max(0, y - 1), min(y + 2, self.count_y)):
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
@@ -362,8 +364,8 @@ class Board:
                         self.active_country.food -= 10
                         return
         else:
-            for i in range(x - 1, x + 2):
-                for j in range(y - 1, y + 2):
+            for i in range(max(0, x - 1), min(x + 2, self.count_x)):
+                for j in range(max(0, y - 1), min(y + 2, self.count_y)):
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
@@ -387,8 +389,11 @@ class Board:
                     i.next_move()
         self.active_country = country
 
-    def init_builders(self):
+    def init_builders(self, x=-1, y=-1, country=None):
         """Создаем строителей вокруг города"""
+        if x != -1 and y != -1:
+            self.board[x][y].add_builders(Builders(x, y, country.get_town(), self))
+            return
         try:
             if self.active_cell is None or self.active_country.food <= 0:
                 return
@@ -399,8 +404,8 @@ class Board:
         if not self.board[x][y].have_town():
             return
         if x % 2 == 0:
-            for i in range(x - 1, x + 2):
-                for j in range(y - 1, y + 2):
+            for i in range(max(0, x - 1), min(x + 2, self.count_x)):
+                for j in range(max(0, y - 1), min(y + 2, self.count_y)):
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
@@ -408,8 +413,8 @@ class Board:
                         self.active_country.food -= 10
                         return
         else:
-            for i in range(x - 1, x + 2):
-                for j in range(y - 1, y + 2):
+            for i in range(max(0, x - 1), min(x + 2, self.count_x)):
+                for j in range(max(0, y - 1), min(y + 2, self.count_y)):
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
@@ -428,13 +433,16 @@ class Board:
                 self.board[self.active_cell[0]][self.active_cell[1]].add_farm(
                     self.board[self.active_cell[0]][self.active_cell[1]].unit.get_town())
                 self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
+                country.units_towns.append(f'Farm {self.active_cell[0]} {self.active_cell[1]}')
         except TypeError:
             return
         except AttributeError:
             return
 
-    def init_warriors(self, country):
+    def init_warriors(self, country, x=-1, y=-1, health=20):
         """Создает воинов"""
+        if x != -1 and y != -1:
+            self.board[x][y].add_warriors(Warriors(x, y, country, self, health))
         try:
             if self.active_cell is None or self.active_country.food <= 0:
                 return
@@ -445,8 +453,8 @@ class Board:
         if not self.board[x][y].have_town():
             return
         if x % 2 == 0:
-            for i in range(x - 1, x + 2):
-                for j in range(y - 1, y + 2):
+            for i in range(max(0, x - 1), min(x + 2, self.count_x)):
+                for j in range(max(0, y - 1), min(y + 2, self.count_y)):
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
@@ -454,14 +462,18 @@ class Board:
                         self.active_country.food -= 10
                         return
         else:
-            for i in range(x - 1, x + 2):
-                for j in range(y - 1, y + 2):
+            for i in range(max(0, x - 1), min(x + 2, self.count_x)):
+                for j in range(max(0, y - 1), min(y + 2, self.count_y)):
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Warriors(i, j, country, self))
                         self.active_country.food -= 10
                         return
+
+    def set_cell(self, x, y, type):
+        """Изменение типа клетки"""
+        self.board[x][y].change_type(type)
 
 
 class Cell:
@@ -589,11 +601,9 @@ class Cell:
 
     def change_type(self, type):
         """Меняем тип клетки и задаем ее цвет"""
-        self.type = type
+        self.type = str(type)
         if type == 'Forest':
             self.color = pygame.Color('#013220')
-            hsv = self.color.hsva
-            self.color.hsva = (hsv[0] + 10, hsv[1], hsv[2], hsv[3])
         elif type == 'Meadow':
             self.color = pygame.Color('#228b22')
         elif type == 'Ocean':

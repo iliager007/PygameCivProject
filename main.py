@@ -59,8 +59,8 @@ def rules_menu():
 
 def draw_start_menu():
     intro_text = ["Продолжить (1)", "",
-                  "Правила игры (2)", "",
-                  "Новая игра (3)"]
+                  "Новая игра (2)", "",
+                  "Правила игры (3)"]
     fon = pygame.transform.scale(load_image('civilization.png'), (MONITOR_width, MONITOR_height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 70)
@@ -87,45 +87,85 @@ def start_menu():
                     terminate()
                 elif event.key == pygame.K_1:
                     return 'continue'
-                elif event.key == pygame.K_2:
+                elif event.key == pygame.K_3:
                     rules_menu()
                     draw_start_menu()
                     continue
+                elif event.key == pygame.K_2:
+                    return 'new'
         pygame.display.flip()
         clock.tick(fps)
 
 
 def new_game():
-    global x, y, size, board
+    global x, y, size, board, countries, i
     x, y, size = 60, 30, 60
     board = Board(x, y, size, MONITOR_width, MONITOR_height)
+    countries = [Country('Россия', board), Country('Украина', board)]
+    i = 0
 
 
 def load_game(info):
-    if ',' in info[0]:
-        countries_name = info[0].split(', ')
-    else:
-        countries_name = info[0]
-    x, y = map(int, info[1])
+    global countries_name, x, y, board, countries
+    info = list(map(str, info))
+    countries_name = info[0].split()
+    y, x = map(int, info[1].split())
+    board = Board(x, y, MONITOR_width, MONITOR_height, generate_field=False)
+    for i in range(y):
+        for j in range(x):
+            board.set_cell(i, j, info[x * i + j + 2].split()[-1])
+    del info[:2 + x * y]
+    i = 0
+    while info[i] != 'end':
+        if info[i].split()[0] in countries_name:
+            countries.append(Country(info[i], board))
+        else:
+            unit = info[i].split()[0]
+            if unit == 'Settlers':
+                unit, x, y = info[i].split()
+                print(countries)
+                board.init_settlers(countries[-1], int(x), int(y))
+            elif unit == 'Builders':
+                unit, x, y = info[i].split()
+                board.init_builders(x, y, countries[-1])
+            elif unit == 'Warriors':
+                unit, x, y, health = info[i].split()
+                board.init_warriors(countries[-1], x, y, health)
+            elif unit == 'Town':
+                unit, x, y = info[i].split()
+                board.init_town(x, y, countries[-1])
+        i += 1
 
 
 def save_game():
     with open('data/maps/saves.txt', mode='w', encoding='utf-8') as file:
-        file.write(', '.join(countries_name))
+        file.write(' '.join(countries_name))
         file.write('\n')
         file.write(f'{board.get_size()[0]} {board.get_size()[1]}')
         file.write('\n')
-        for i in range(board.get_size()[0]):
-            for j in range(board.get_size()[1]):
+        for i in range(board.get_count_cells_x()):
+            for j in range(board.get_count_cells_y()):
                 file.write(f'{i} {j} {board.get_cell(i, j).type}')
                 file.write('\n')
-        for i in range(board.get_size()[0]):
-            for j in range(board.get_size()[1]):
-                if board.get_cell(i, j).have_unit():
-                    unit = board.get_cell(i, j).unit
-                    file.write(f'{i} {j} {unit.who()} {unit.health} {unit.country.name}')
-                elif board.get_cell(i, j).have_town():
-                    pass
+        for country in countries:
+            file.write(country.name + '\n\n')
+            for unit in country.units_towns:
+                name = str(unit)
+                if 'farm' in name:
+                    file.write(name + '\n')
+                elif 'Settlers' in name:
+                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y))
+                    file.write('\n')
+                elif 'Builders' in name:
+                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y))
+                    file.write('\n')
+                elif 'Warriors' in name:
+                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y) + ' ' + str(unit.health))
+                    file.write('\n')
+                elif 'Town' in name:
+                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y))
+                    file.write('\n')
+        file.write('end')
 
 
 pygame.init()
@@ -138,21 +178,19 @@ clock = pygame.time.Clock()
 mode = start_menu()
 x, y, size = None, None, None
 board = None
+countries = []
 if mode == 'continue':
-    with open('data/maps/saves.txt', mode='r', encoding='utf-8') as file:
-        if file.read() == 'No saves':
-            new_game()
-        else:
-            load_game(file.readlines())
-x, y, size = 60, 30, 60
-board = Board(x, y, size, MONITOR_width, MONITOR_height)
+    with open('data/maps/saves.txt', encoding='utf-8') as file:
+        info = file.readlines()
+        load_game(info)
+elif mode == 'new':
+    new_game()
+countries = [Country('Россия', board)]
 running = True
 MOUSEMOTION = False
 MOUSE_BUTTON_PRESSED = False
 K_MOVE = 2
 x, y = 0, 0
-countries = [Country('Россия', board), Country('Украина', board)]
-countries_name = 'Россия', 'Украина'
 i = 0
 board.active_country = countries[i]
 while running:

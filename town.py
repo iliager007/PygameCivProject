@@ -32,6 +32,7 @@ class Town:
         self.image = load_image('buildings/town.png', -1)
         self.amount_of_food = 20  # первоначальное количество еды
         self.growth_of_food = 0  # прирост еды
+        country.units_towns.append(self)
 
     def render(self, coords, cell_size, screen):
         image = pygame.transform.scale(self.image, (int(cell_size - 15), int(cell_size - 15)))
@@ -40,6 +41,9 @@ class Town:
     def next_move(self):
         self.amount_of_food += self.growth_of_food
         self.country.food += self.growth_of_food
+
+    def __str__(self):
+        return 'Town'
 
 
 class Country:
@@ -51,7 +55,7 @@ class Country:
         self.food = food
         self.t_stone = 0
         self.stone = 0
-        self.units = []
+        self.units_towns = []
         self.set_parameters()
 
     def set_parameters(self):
@@ -92,3 +96,6 @@ class Country:
         health_y = health.get_height() * 5
         screen.blit(name, (name_x, name_y))
         screen.blit(health, (health_x, health_y))
+
+    def __str__(self):
+        return 'Country'
