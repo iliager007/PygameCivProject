@@ -1,8 +1,13 @@
 import pygame
-from win32api import GetSystemMetrics
 from cell import Board
 from town import Country
 import sys
+from PyQt5 import Qt
+
+
+def get_size_of_desktop():
+    desktop = Qt.QApplication(sys.argv).desktop()
+    return desktop.width(), desktop.height()
 
 
 def terminate():
@@ -119,8 +124,7 @@ def save_game():
 
 
 pygame.init()
-MONITOR_width = GetSystemMetrics(0)
-MONITOR_height = GetSystemMetrics(1)
+MONITOR_width, MONITOR_height = get_size_of_desktop()
 size = (MONITOR_width, MONITOR_height)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 screen.fill((128, 128, 128))
