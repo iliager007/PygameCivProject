@@ -29,7 +29,7 @@ class Town:
         self.country = country
         self.coords = cell.get_coords()
         self.name = pygame.font.Font(None, self.name_size)
-        self.image = load_image('город.png', -1)
+        self.image = load_image('buildings/town.png', -1)
         self.amount_of_food = 20  # первоначальное количество еды
         self.growth_of_food = 0  # прирост еды
 

@@ -1,5 +1,5 @@
 import random
-
+import pygame
 from town import Town
 from units import *
 
@@ -15,7 +15,13 @@ class Board:
         Четвертый и пятый - размеры мониторы
         """
         self.cities_and_belonging = [[('Neutral', False) for _ in range(count_cells_y)] for __ in range(count_cells_x)]
-        self.color_country = {'Россия': pygame.Color('yellow'), 'Япония': pygame.Color('red'), 'Neutral': pygame.Color('black')}
+        self.color_country = {}
+        with open('data/buildings/colors.txt', 'r', encoding='utf-8') as file:
+            dop = file.readline()
+            while dop != '':
+                country_name, color, color_name = dop.split()
+                self.color_country[country_name] = pygame.Color(color)
+                dop = file.readline()
         self.MONITOR_width = MONITOR_width
         self.MONITOR_height = MONITOR_height
         self.MAX_ZOOM = 15
@@ -38,6 +44,7 @@ class Board:
         self.generate_field()
 
     def get_size(self):
+        """Возращает размеры поля"""
         return self.count_x, self.count_y
 
     def initBoard(self):
@@ -118,6 +125,7 @@ class Board:
                         self.active_cell = None
 
     def get_active_unit(self):
+        """Возращает активный юнит"""
         if self.active_cell is None:
             return False
         x, y = self.active_cell
@@ -125,6 +133,7 @@ class Board:
             return self.board[x][y].get_unit()
 
     def heal(self):
+        """Лечит активный юнит"""
         try:
             x, y = self.active_cell
             if self.board[x][y].unit.who() == 'Warriors':
@@ -146,7 +155,7 @@ class Board:
             self.board[x][y].unit_on_cell = False
 
     def activate_battle_mode(self):
-        print('Battle')
+        """Активация боевого режима"""
         self.battle_mod = True
 
     def zoom(self, koef):
@@ -299,10 +308,11 @@ class Board:
         """Создает город в клетке с координатами x, y"""
         try:
             if x == y == -1:
-                if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Settlers':
+                if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Поселенцы':
                     self.board[self.active_cell[0]][self.active_cell[1]].add_town(country)
                     self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
-            self.board[x][y].add_town(country)
+            else:
+                self.board[x][y].add_town(country)
         except TypeError:
             return
         except AttributeError:
@@ -411,10 +421,11 @@ class Board:
         """Возращает текущие координаты левого верзнего угла второго экрана"""
         return self.x, self.y
 
-    def init_ferma(self, country):
+    def init_farm(self, country):
+        """Создает ферму"""
         try:
             if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Builders':
-                self.board[self.active_cell[0]][self.active_cell[1]].add_ferma(
+                self.board[self.active_cell[0]][self.active_cell[1]].add_farm(
                     self.board[self.active_cell[0]][self.active_cell[1]].unit.get_town())
                 self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
         except TypeError:
@@ -423,6 +434,7 @@ class Board:
             return
 
     def init_warriors(self, country):
+        """Создает воинов"""
         try:
             if self.active_cell is None or self.active_country.food <= 0:
                 return
@@ -470,7 +482,7 @@ class Cell:
         self.unit = None
         self.town_on_cell = False
         self.unit_on_cell = False
-        self.ferma_on_cell = False
+        self.farm_on_cell = False
 
     def render(self):
         """Основная функция отрисовки"""
@@ -478,8 +490,8 @@ class Cell:
         pygame.draw.polygon(self.board.screen2, self.color, self.coords)
         if self.town_on_cell:
             self.town.render(self.coords, self.cell_size, self.board.screen2)
-        if self.ferma_on_cell:
-            dop = pygame.transform.scale(self.image_ferma, (int(self.cell_size - 15), int(self.cell_size - 15)))
+        if self.farm_on_cell:
+            dop = pygame.transform.scale(self.image_farm, (int(self.cell_size - 15), int(self.cell_size - 15)))
             self.board.screen2.blit(dop, (
                 (self.coords[0][0] + self.coords[5][0]) // 2 - 8, (self.coords[0][1] + self.coords[5][1]) // 2 - 3))
         if self.unit_on_cell:
@@ -492,41 +504,65 @@ class Cell:
         if i % 2 == 1:
             if i >= 1 and j >= 1:
                 if cities_and_belonging[i - 1][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[5][0] + 2, self.coords[5][1] + 2), (self.coords[0][0] + 2, self.coords[0][1] + 2), 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[5][0] + 2, self.coords[5][1] + 2),
+                                     (self.coords[0][0] + 2, self.coords[0][1] + 2), 4)
             if i >= 1:
                 if cities_and_belonging[i - 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[0][0] - 2, self.coords[0][1] + 2), (self.coords[1][0] - 2, self.coords[1][1] + 1), 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[0][0] - 2, self.coords[0][1] + 2),
+                                     (self.coords[1][0] - 2, self.coords[1][1] + 1), 4)
             if j < size_y - 1:
                 if cities_and_belonging[i][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[1][0] - 2, self.coords[1][1]), (self.coords[2][0] - 2, self.coords[2][1]), 5)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[1][0] - 2, self.coords[1][1]),
+                                     (self.coords[2][0] - 2, self.coords[2][1]), 5)
             if i < size_x - 1:
                 if cities_and_belonging[i + 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[2][0] - 2, self.coords[2][1] - 2), (self.coords[3][0] - 2, self.coords[3][1] - 2), 5)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[2][0] - 2, self.coords[2][1] - 2),
+                                     (self.coords[3][0] - 2, self.coords[3][1] - 2), 5)
             if i < size_x - 1 and j >= 1:
                 if cities_and_belonging[i + 1][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[3][0] + 2, self.coords[3][1] - 2), (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[3][0] + 2, self.coords[3][1] - 2),
+                                     (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
             if j >= 1:
                 if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[4][0] + 2, self.coords[4][1]), (self.coords[5][0] + 2, self.coords[5][1]), 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[4][0] + 2, self.coords[4][1]),
+                                     (self.coords[5][0] + 2, self.coords[5][1]), 4)
         if i % 2 == 0:
             if i >= 1:
                 if cities_and_belonging[i - 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[5][0] + 2, self.coords[5][1] + 2), (self.coords[0][0] + 2, self.coords[0][1] + 2), 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[5][0] + 2, self.coords[5][1] + 2),
+                                     (self.coords[0][0] + 2, self.coords[0][1] + 2), 4)
             if i >= 1 and j < size_y - 1:
                 if cities_and_belonging[i - 1][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[0][0] - 2, self.coords[0][1] + 2), (self.coords[1][0] - 2, self.coords[1][1] + 2), 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[0][0] - 2, self.coords[0][1] + 2),
+                                     (self.coords[1][0] - 2, self.coords[1][1] + 2), 4)
             if j < size_y - 1:
                 if cities_and_belonging[i][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[1][0] - 2, self.coords[1][1]), (self.coords[2][0] - 2, self.coords[2][1]), 5)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[1][0] - 2, self.coords[1][1]),
+                                     (self.coords[2][0] - 2, self.coords[2][1]), 5)
             if i < size_x - 1 and j < size_y - 1:
                 if cities_and_belonging[i + 1][j + 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[2][0] - 2, self.coords[2][1] - 2), (self.coords[3][0] - 2, self.coords[3][1] - 2), 5)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[2][0] - 2, self.coords[2][1] - 2),
+                                     (self.coords[3][0] - 2, self.coords[3][1] - 2), 5)
             if i < size_x - 1:
                 if cities_and_belonging[i + 1][j][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[3][0] + 2, self.coords[3][1] - 2), (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[3][0] + 2, self.coords[3][1] - 2),
+                                     (self.coords[4][0] + 2, self.coords[4][1] - 2), 5)
             if j >= 1:
                 if cities_and_belonging[i][j - 1][0] != cities_and_belonging[i][j][0]:
-                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]], (self.coords[4][0] + 2, self.coords[4][1]), (self.coords[5][0] + 2, self.coords[5][1]), 4)
+                    pygame.draw.line(self.board.screen2, self.board.color_country[cities_and_belonging[i][j][0]],
+                                     (self.coords[4][0] + 2, self.coords[4][1]),
+                                     (self.coords[5][0] + 2, self.coords[5][1]), 4)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
         """Проверяем была ли нажата именно эта клетка"""
@@ -572,11 +608,11 @@ class Cell:
         if type == 1:
             for i in range(len(self.coords)):
                 self.coords[i] = [self.coords[i][0] * 1.05 - 32, self.coords[i][1] * 1.05 - 18]
-            self.cell_size *= 1.03
+            self.cell_size *= 1.035
         if type == -1:
             for i in range(len(self.coords)):
                 self.coords[i] = [(self.coords[i][0] + 32) / 1.05, (self.coords[i][1] + 18) / 1.05]
-            self.cell_size /= 1.03
+            self.cell_size /= 1.035
 
     def get_coords(self):
         """Возвращает координаты клетки"""
@@ -671,11 +707,11 @@ class Cell:
     def add_unit(self, unit):
         """Добавление юнита в клетку"""
         who = unit.who()
-        if who == 'Settlers':
+        if who == 'Поселенцы':
             self.add_settlers(unit)
-        elif who == 'Builders':
+        elif who == 'Строители':
             self.add_builders(unit)
-        elif who == 'Warriors':
+        elif who == 'Воины':
             self.add_warriors(unit)
 
     def move_to(self, x, y):
@@ -698,13 +734,13 @@ class Cell:
         if self.town_on_cell:
             self.town.next_move()
 
-    def add_ferma(self, town):
+    def add_farm(self, town):
         """Добавляет ферму в клетку"""
-        if not self.ferma_on_cell:
-            self.ferma_on_cell = True
+        if not self.farm_on_cell:
+            self.farm_on_cell = True
             town.growth_of_food += 3
             town.country.t_food += 3
-            self.image_ferma = load_image('ферма.png', -1)
+            self.image_farm = load_image('buildings/farm.png', -1)
 
     def add_warriors(self, unit):
         """Добавление воинов на клетку"""

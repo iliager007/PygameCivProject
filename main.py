@@ -100,7 +100,7 @@ def load_game(info):
 
 
 def save_game():
-    with open('saves.txt', mode='w', encoding='utf-8') as file:
+    with open('data/maps/saves.txt', mode='w', encoding='utf-8') as file:
         file.write(', '.join(countries_name))
         file.write('\n')
         file.write(f'{board.get_size()[0]} {board.get_size()[1]}')
@@ -130,7 +130,7 @@ clock = pygame.time.Clock()
 # x, y, size = None, None, None
 # board = None
 # if mode == 'continue':
-#     with open('saves.txt', mode='r', encoding='utf-8') as file:
+#     with open('data/maps/saves.txt', mode='r', encoding='utf-8') as file:
 #         if file.read() == 'No saves':
 #             new_game()
 #         else:
@@ -171,7 +171,7 @@ while running:
             elif event.key == pygame.K_2:
                 board.init_builders()
             elif event.key == pygame.K_f:
-                board.init_ferma(countries[i])
+                board.init_farm(countries[i])
             elif event.key == pygame.K_3:
                 board.init_warriors(countries[i])
             elif event.key == pygame.K_a:
