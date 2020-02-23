@@ -424,7 +424,7 @@ class Board:
     def init_farm(self, country):
         """Создает ферму"""
         try:
-            if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Builders':
+            if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Строители':
                 self.board[self.active_cell[0]][self.active_cell[1]].add_farm(
                     self.board[self.active_cell[0]][self.active_cell[1]].unit.get_town())
                 self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
