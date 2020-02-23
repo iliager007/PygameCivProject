@@ -1,2 +1,2 @@
 pygame
-pyqt5
+threadsafe-tkinter

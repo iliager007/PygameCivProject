@@ -2,12 +2,12 @@ import pygame
 from cell import Board
 from town import Country
 import sys
-from PyQt5 import Qt
+import tkinter
 
 
 def get_size_of_desktop():
-    desktop = Qt.QApplication(sys.argv).desktop()
-    return desktop.width(), desktop.height()
+    r = tkinter.Tk()
+    return r.winfo_screenwidth(), r.winfo_screenheight()
 
 
 def terminate():
