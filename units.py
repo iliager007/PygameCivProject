@@ -29,7 +29,7 @@ class Settlers:
         self.max_move = 1
         self.count_move = 0
         self.moveble = False
-        self.image = load_image('переселенцы.png', -1)
+        self.image = load_image('units/settlers.png', -1)
 
     def move(self, x, y):
         if self.moveble:
@@ -127,10 +127,10 @@ class Settlers:
         screen.blit(dop, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
 
     def who(self):
-        return 'Settlers'
+        return 'Поселенцы'
 
     def __str__(self):
-        return 'Settlers'
+        return 'Поселенцы'
 
     def update(self):
         self.moveble = False
@@ -153,7 +153,7 @@ class Builders:
         self.max_move = 1
         self.health = 20
         self.count_move = 0
-        self.image = load_image('строители.png', -1)
+        self.image = load_image('units/builders.png', -1)
 
     def move(self, x, y):
         if self.moveble:
@@ -249,10 +249,10 @@ class Builders:
         screen.blit(dop, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
 
     def who(self):
-        return 'Builders'
+        return 'Строители'
 
     def __str__(self):
-        return 'Builders'
+        return 'Строители'
 
     def get_town(self):
         return self.town
@@ -269,20 +269,22 @@ class Warriors:
     def __init__(self, x, y, country, board):
         self.x = x
         self.y = y
+        self.first_move = 1
         self.moveble = False
         self.board = board
         self.country = country
         self.health = 20
         self.max_health = 20
-        self.country = '1'
         self.damage = 10
         self.t_level = 0
         self.t_moving = []
         self.max_move = 1
         self.count_move = 0
-        self.image = load_image('воин.png', -1)
+        self.image = load_image('units/warrior.png', -1)
 
     def move(self, x, y):
+        if self.first_move != 0:
+            return
         if self.moveble:
             return
         self.count_move = 0
@@ -294,6 +296,8 @@ class Warriors:
 
     def next_move(self):
         if len(self.t_moving) == 0:
+            return
+        if not self.moveble:
             return
         self.count_move += 1
         dop_x, dop_y = self.x, self.y
@@ -376,10 +380,10 @@ class Warriors:
         screen.blit(dop, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
 
     def who(self):
-        return 'Warriors'
+        return 'Воины'
 
     def __str__(self):
-        return 'Warriors'
+        return 'Воины'
 
     def get_town(self):
         return self.town
@@ -406,7 +410,6 @@ class Warriors:
         return self.max_move
 
     def take_damage(self):
-        print('Damage')
         return self.damage
 
     def get_damage(self, damage):
