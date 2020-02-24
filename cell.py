@@ -117,8 +117,10 @@ class Board:
                                     self.attack(i, j)
                                     self.battle_mod = False
                             except TypeError:
+                                print('TypeError')
                                 return
                             except AttributeError:
+                                print('AttributeError')
                                 return
                         elif self.board[self.active_cell[0]][self.active_cell[1]].have_unit():
                             self.x_to_change = self.active_cell[0]
@@ -148,11 +150,11 @@ class Board:
     def attack(self, x, y):
         """Атаковать юнит на клетке x, y"""
         x1, y1 = self.active_cell
-        if self.board[x][y].unit.who() != 'Warriors':
+        if self.board[x][y].unit.who() != 'Воины':
             return
-        self.board[x][y].unit.get_damage(self.board[x1][y1].unit.take_damage())
-        self.board[x1][y1].unit.moveble = True
+        self.board[x][y].unit.health = self.board[x][y].unit.health - self.board[x1][y1].unit.take_damage()
         if self.board[x][y].unit.health <= 0:
+            self.board[x][y].unit.live = 0
             self.board[x][y].unit = None
             self.board[x][y].unit_on_cell = False
 
@@ -335,7 +337,6 @@ class Board:
             y = self.y_to_change
         dop = self.board[x][y].get_unit()
         if dop is None:
-            print('Unit is None')
             return
         self.board[x][y].del_unit()
         self.board[x1][y1].add_unit(dop)
@@ -392,6 +393,7 @@ class Board:
                 if i.town.country.name == self.active_country.name:
                     i.next_move()
         self.active_country = country
+        self.battle_mod = False
 
     def init_builders(self, x=-1, y=-1, country=None):
         """Создаем строителей вокруг города"""

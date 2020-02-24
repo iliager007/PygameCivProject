@@ -277,10 +277,11 @@ class Warriors:
         self.from_save = from_save
         self.board = board
         self.country = country
-        self.health = health
+        self.health = int(health)
         self.max_health = lvl * 20 + 20
-        self.damage = 10
+        self.damage = 15
         self.t_level = lvl
+        self.live = 1
         self.t_moving = []
         self.max_move = 3 + lvl
         self.count_move = 0
@@ -288,10 +289,6 @@ class Warriors:
         country.units_towns.append(self)
 
     def move(self, x, y):
-        if self.first_move != 0 and not self.from_save:
-            self.from_save = False
-            self.first_move = 0
-            return
         if not self.moveble:
             return
         self.count_move = 0
@@ -418,9 +415,6 @@ class Warriors:
 
     def take_damage(self):
         return self.damage
-
-    def get_damage(self, damage):
-        self.health -= damage
 
     def country(self):
         return self.country

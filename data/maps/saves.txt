@@ -1801,68 +1801,51 @@
 29 58 Tundra
 29 59 Tundra
 Россия
-24 42
-Settlers 27 6 0
-Settlers 27 6 0
+88 126
 Town 27 6
-Builders 25 5 0
-Builders 25 5 0
-Builders 25 5 0
 Farm 25 5
-Builders 25 6 0
-Builders 25 6 0
-Builders 25 6 0
 Farm 25 6
-Builders 26 4 0
-Builders 26 4 0
-Builders 28 7 0
-Builders 28 7 0
-Builders 27 4 0
-Builders 27 4 0
-Builders 29 6 0
-Builders 29 6 0
-Builders 28 4 0
-Builders 28 4 0
-Builders 29 5 0
-Builders 29 5 0
-Builders 26 4 0
 Farm 26 4
-Builders 27 4 0
 Farm 27 4
-Builders 28 4 0
 Farm 28 4
-Builders 29 5 0
 Farm 29 5
-Builders 29 6 0
 Farm 29 6
-Builders 28 7 0
 Farm 28 7
-Builders 25 7 0
-Builders 25 7 0
-Builders 25 7 0
 Farm 25 7
-Builders 25 4 0
-Builders 25 4 0
-Builders 27 8 0
-Builders 27 8 0
-Builders 26 3 0
-Builders 26 3 0
-Builders 26 7 0
-Builders 26 7 0
-Builders 29 7 0
-Builders 29 7 0
-Builders 26 7 0
 Farm 26 7
-Builders 27 8 0
 Farm 27 8
-Builders 29 7 0
 Farm 29 7
-Builders 26 3 0
 Farm 26 3
-Builders 25 4 0
 Farm 25 4
+Warriors 26 8 20
+Warriors 26 8 20
+Warriors 26 8 20
+Warriors 26 8 20
+Warriors 26 10 20
+Warriors 26 10 20
+Warriors 26 10 20
+Warriors 26 10 20
+Warriors 26 8 20
+Warriors 26 8 20
+Warriors 26 10 20
+Warriors 26 10 20
+Warriors 26 10 20
+Warriors 26 10 20
 Украина
-20 0
+0 0
 Settlers 26 14 1
 Settlers 26 14 1
+Settlers 26 14 0
+Settlers 26 14 0
+Town 26 14
+Warriors 25 14 20
+Warriors 25 14 20
+Warriors 25 14 20
+Warriors 25 14 20
+Warriors 26 11 20
+Warriors 26 11 20
+Warriors 26 11 20
+Warriors 26 11 20
+Warriors 26 11 20
+Warriors 26 11 20
 end
