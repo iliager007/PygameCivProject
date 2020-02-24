@@ -361,7 +361,7 @@ class Board:
         if x % 2 == 0:
             for i in range(max(0, x - 1), min(x + 2, self.count_x)):
                 for j in range(max(0, y - 1), min(y + 2, self.count_y)):
-                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
+                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1 or self.board[i][j].type == 'Ocean':
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Settlers(i, j, country, self))
@@ -370,7 +370,7 @@ class Board:
         else:
             for i in range(max(0, x - 1), min(x + 2, self.count_x)):
                 for j in range(max(0, y - 1), min(y + 2, self.count_y)):
-                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1 or self.board[i][j].type == 'Ocean':
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Settlers(i, j, country, self))
@@ -410,7 +410,7 @@ class Board:
         if x % 2 == 0:
             for i in range(max(0, x - 1), min(x + 2, self.count_x)):
                 for j in range(max(0, y - 1), min(y + 2, self.count_y)):
-                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
+                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1 or self.board[i][j].type == 'Ocean':
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Builders(i, j, self.active_country, self))
@@ -419,7 +419,7 @@ class Board:
         else:
             for i in range(max(0, x - 1), min(x + 2, self.count_x)):
                 for j in range(max(0, y - 1), min(y + 2, self.count_y)):
-                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1 or self.board[i][j].type == 'Ocean':
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Builders(i, j, self.active_country, self))
@@ -462,7 +462,7 @@ class Board:
         if x % 2 == 0:
             for i in range(max(0, x - 1), min(x + 2, self.count_x)):
                 for j in range(max(0, y - 1), min(y + 2, self.count_y)):
-                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
+                    if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1 or self.board[i][j].type == 'Ocean':
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Warriors(i, j, country, self))
@@ -471,7 +471,7 @@ class Board:
         else:
             for i in range(max(0, x - 1), min(x + 2, self.count_x)):
                 for j in range(max(0, y - 1), min(y + 2, self.count_y)):
-                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
+                    if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1 or self.board[i][j].type == 'Ocean':
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
                         self.board[i][j].add_unit(Warriors(i, j, country, self))
@@ -691,6 +691,7 @@ class Cell:
         self.town = Town(self.x, self.y, self, dop, country)
         self.town_on_cell = True
         self.unit_on_cell = False
+        self.unit.live = 0
         self.unit = None
 
     def add_settlers(self, unit):
@@ -720,7 +721,7 @@ class Cell:
 
     def del_unit(self):
         """Удаление юнита из клетки"""
-        del self.unit.country.units_towns[self.unit.country.units_towns.index(self)]
+        # del self.unit.country.units_towns[self.unit.country.units_towns.index(self)]
         self.unit_on_cell = False
         self.unit = None
 
@@ -759,6 +760,8 @@ class Cell:
         if not self.farm_on_cell:
             self.farm_on_cell = True
             country.t_food += 3
+            if self.unit is not None:
+                self.unit.live = 0
             self.image_farm = load_image('buildings/farm.png', -1)
 
     def add_warriors(self, unit):

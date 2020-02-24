@@ -25,6 +25,7 @@ class Settlers:
         self.board = board
         self.t_level = 0
         self.health = 20
+        self.live = 1
         self.t_moving = []
         self.max_move = 1
         self.count_move = 0
@@ -153,14 +154,13 @@ class Builders:
         self.max_move = 1
         self.health = 20
         self.count_move = 0
+        self.live = 1
         self.image = load_image('units/builders.png', -1)
         self.country.units_towns.append(self)
 
     def move(self, x, y):
         if self.moveble:
-            print('Not moveble')
             return
-        print('Moveble')
         self.count_move = 0
         dop = self.check_can_move(x, y)
         if dop is False:
@@ -290,24 +290,21 @@ class Warriors:
     def move(self, x, y):
         if self.first_move != 0 and not self.from_save:
             self.from_save = False
+            self.first_move = 0
             return
         if not self.moveble:
             return
-        print('Moveble')
         self.count_move = 0
         dop = self.check_can_move(x, y)
         if dop is False:
             return
-        print('Sorry(')
         self.t_moving = deepcopy(dop)
         self.next_move()
 
     def next_move(self):
         if len(self.t_moving) == 0:
-            print('Len self.t_moving == 0')
             return
         if not self.moveble:
-            print('self.moveble is False')
             return
         self.count_move += 1
         dop_x, dop_y = self.x, self.y
@@ -321,7 +318,6 @@ class Warriors:
             elif i == 'left':
                 self.y -= 1
         self.t_moving = self.t_moving[3:]
-        print('Move')
         self.board.change_cell(self.x, self.y, dop_x, dop_y)
         self.moveble = True
 
@@ -400,7 +396,7 @@ class Warriors:
         return self.town
 
     def update(self):
-        self.moveble = False
+        self.moveble = True
 
     def heal(self):
         self.health += 5

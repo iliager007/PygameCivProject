@@ -37,8 +37,6 @@ class Town:
         screen.blit(image, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
 
     def next_move(self):
-        # self.amount_of_food += self.growth_of_food
-        # self.country.food += self.growth_of_food
         pass
 
     def __str__(self):
@@ -99,3 +97,6 @@ class Country:
 
     def __str__(self):
         return 'Country'
+
+    def next_move(self):
+        self.food += self.t_food

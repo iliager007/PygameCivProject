@@ -91,7 +91,6 @@ def start_menu():
                 elif event.key == pygame.K_3:
                     rules_menu()
                     draw_start_menu()
-                    continue
                 elif event.key == pygame.K_2:
                     return 'new'
         pygame.display.flip()
@@ -122,18 +121,22 @@ def load_game(info):
     i = 0
     while info[i] != 'end':
         if info[i].split()[0] in countries_name:
-            countries.append(Country(info[i], board, pr='SAVE'))
+            food, t_food = info[i + 1].split()
+            countries.append(Country(info[i], board, pr='SAVE', food=int(food), t_food=int(t_food)))
         else:
             unit = info[i].split()[0]
             if unit == 'Settlers':
-                unit, x, y = info[i].split()
-                board.init_settlers(countries[-1], int(x), int(y), 'SAVE')
+                unit, x, y, live = info[i].split()
+                if int(live):
+                    board.init_settlers(countries[-1], int(x), int(y), 'SAVE')
             elif unit == 'Builders':
-                unit, x, y = info[i].split()
-                board.init_builders(int(x), int(y), countries[-1])
+                unit, x, y, live = info[i].split()
+                if int(live):
+                    board.init_builders(int(x), int(y), countries[-1])
             elif unit == 'Warriors':
                 unit, x, y, health = info[i].split()
-                board.init_warriors(countries[-1], int(x), int(y), health)
+                if int(health) > 0:
+                    board.init_warriors(countries[-1], int(x), int(y), health)
             elif unit == 'Town':
                 unit, x, y = info[i].split()
                 board.init_town(int(x), int(y), countries[-1])
@@ -158,21 +161,25 @@ def save_game():
                 file.write('\n')
         for country in countries:
             file.write(str(country.name) + '\n')
+            file.write(' '.join([str(country.food), str(country.t_food)]) + '\n')
             for unit in country.units_towns:
                 name = str(unit)
                 if 'farm' in name:
                     file.write(name + '\n')
                 elif 'Settlers' in name:
-                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y))
+                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y) + ' ' + str(unit.live))
                     file.write('\n')
                 elif 'Builders' in name:
-                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y))
+                    file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y) + ' ' + str(unit.live))
                     file.write('\n')
                 elif 'Warriors' in name:
                     file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y) + ' ' + str(unit.health))
                     file.write('\n')
                 elif 'Town' in name:
                     file.write(name + ' ' + str(unit.x) + ' ' + str(unit.y))
+                    file.write('\n')
+                elif 'Farm' in name:
+                    file.write(name)
                     file.write('\n')
         file.write('end')
 
@@ -237,6 +244,7 @@ while running:
             elif event.key == pygame.K_h:
                 board.heal()
             elif event.key == pygame.K_RETURN:
+                countries[i].next_move()
                 i = (i + 1) % len(countries)
                 board.next_move(countries[i])
         elif event.type == pygame.MOUSEBUTTONUP:
