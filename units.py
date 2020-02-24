@@ -142,15 +142,12 @@ class Settlers:
 
 class Builders:
 
-    def __init__(self, x, y, town, board):
+    def __init__(self, x, y, country, board):
         self.x = x
         self.y = y
         self.moveble = False
         self.board = board
-        if str(town) == 'Country':
-            self.country = town
-        else:
-            self.country = town.country
+        self.country = country
         self.t_level = 0
         self.t_moving = []
         self.max_move = 1
@@ -161,7 +158,9 @@ class Builders:
 
     def move(self, x, y):
         if self.moveble:
+            print('Not moveble')
             return
+        print('Moveble')
         self.count_move = 0
         dop = self.check_can_move(x, y)
         if dop is False:
@@ -270,11 +269,12 @@ class Builders:
 
 class Warriors:
 
-    def __init__(self, x, y, country, board, health=20, lvl=0):
+    def __init__(self, x, y, country, board, health=20, lvl=0, from_save=False):
         self.x = x
         self.y = y
         self.first_move = 1
-        self.moveble = False
+        self.moveble = True
+        self.from_save = from_save
         self.board = board
         self.country = country
         self.health = health
@@ -288,25 +288,30 @@ class Warriors:
         country.units_towns.append(self)
 
     def move(self, x, y):
-        if self.first_move != 0:
+        if self.first_move != 0 and not self.from_save:
+            self.from_save = False
             return
-        if self.moveble:
+        if not self.moveble:
             return
+        print('Moveble')
         self.count_move = 0
         dop = self.check_can_move(x, y)
         if dop is False:
             return
+        print('Sorry(')
         self.t_moving = deepcopy(dop)
         self.next_move()
 
     def next_move(self):
         if len(self.t_moving) == 0:
+            print('Len self.t_moving == 0')
             return
         if not self.moveble:
+            print('self.moveble is False')
             return
         self.count_move += 1
         dop_x, dop_y = self.x, self.y
-        for i in self.t_moving[:self.max_move]:
+        for i in self.t_moving[:3]:
             if i == 'down':
                 self.x += 1
             elif i == 'up':
@@ -316,6 +321,7 @@ class Warriors:
             elif i == 'left':
                 self.y -= 1
         self.t_moving = self.t_moving[3:]
+        print('Move')
         self.board.change_cell(self.x, self.y, dop_x, dop_y)
         self.moveble = True
 

@@ -4,6 +4,7 @@ from town import Country
 import sys
 import tkinter
 import os
+from copy import deepcopy
 
 
 def load_image(name, colorkey=None):
@@ -107,7 +108,10 @@ def new_game():
 
 def load_game(info):
     global countries_name, x, y, board, countries
-    info = list(map(str, info))
+    dop = []
+    for i in info:
+        dop.append(i.replace('\n', ''))
+    info = deepcopy(dop)
     countries_name = info[0].split()
     y, x = map(int, info[1].split())
     board = Board(x, y, MONITOR_width, MONITOR_height, generate_field=False)
@@ -118,26 +122,31 @@ def load_game(info):
     i = 0
     while info[i] != 'end':
         if info[i].split()[0] in countries_name:
-            countries.append(Country(info[i], board))
+            countries.append(Country(info[i], board, pr='SAVE'))
         else:
             unit = info[i].split()[0]
             if unit == 'Settlers':
                 unit, x, y = info[i].split()
-                print(countries)
-                board.init_settlers(countries[-1], int(x), int(y))
+                board.init_settlers(countries[-1], int(x), int(y), 'SAVE')
             elif unit == 'Builders':
                 unit, x, y = info[i].split()
-                board.init_builders(x, y, countries[-1])
+                board.init_builders(int(x), int(y), countries[-1])
             elif unit == 'Warriors':
                 unit, x, y, health = info[i].split()
-                board.init_warriors(countries[-1], x, y, health)
+                board.init_warriors(countries[-1], int(x), int(y), health)
             elif unit == 'Town':
                 unit, x, y = info[i].split()
-                board.init_town(x, y, countries[-1])
+                board.init_town(int(x), int(y), countries[-1])
+            elif unit == 'Farm':
+                unit, x, y = info[i].split()
+                board.init_farm(countries[-1], pr='SAVE', x=int(x), y=int(y))
         i += 1
 
 
 def save_game():
+    countries_name = []
+    for country in countries:
+        countries_name.append(country.name.replace('\n', ''))
     with open('data/maps/saves.txt', mode='w', encoding='utf-8') as file:
         file.write(' '.join(countries_name))
         file.write('\n')
@@ -148,7 +157,7 @@ def save_game():
                 file.write(f'{i} {j} {board.get_cell(i, j).type}')
                 file.write('\n')
         for country in countries:
-            file.write(country.name + '\n\n')
+            file.write(str(country.name) + '\n')
             for unit in country.units_towns:
                 name = str(unit)
                 if 'farm' in name:
@@ -182,10 +191,12 @@ countries = []
 if mode == 'continue':
     with open('data/maps/saves.txt', encoding='utf-8') as file:
         info = file.readlines()
-        load_game(info)
+        if 'No saves' in info[0]:
+            new_game()
+        else:
+            load_game(info)
 elif mode == 'new':
     new_game()
-countries = [Country('Россия', board)]
 running = True
 MOUSEMOTION = False
 MOUSE_BUTTON_PRESSED = False

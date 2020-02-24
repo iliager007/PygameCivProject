@@ -30,8 +30,6 @@ class Town:
         self.coords = cell.get_coords()
         self.name = pygame.font.Font(None, self.name_size)
         self.image = load_image('buildings/town.png', -1)
-        self.amount_of_food = 20  # первоначальное количество еды
-        self.growth_of_food = 0  # прирост еды
         country.units_towns.append(self)
 
     def render(self, coords, cell_size, screen):
@@ -39,8 +37,9 @@ class Town:
         screen.blit(image, ((coords[0][0] + coords[5][0]) // 2 - 8, (coords[0][1] + coords[5][1]) // 2 - 3))
 
     def next_move(self):
-        self.amount_of_food += self.growth_of_food
-        self.country.food += self.growth_of_food
+        # self.amount_of_food += self.growth_of_food
+        # self.country.food += self.growth_of_food
+        pass
 
     def __str__(self):
         return 'Town'
@@ -48,7 +47,7 @@ class Town:
 
 class Country:
 
-    def __init__(self, name, board, food=20, t_food=0):
+    def __init__(self, name, board, food=20, t_food=0, pr='NEW'):
         self.name = name
         self.board = board
         self.t_food = t_food
@@ -56,7 +55,8 @@ class Country:
         self.t_stone = 0
         self.stone = 0
         self.units_towns = []
-        self.set_parameters()
+        if pr == 'NEW':
+            self.set_parameters()
 
     def set_parameters(self):
         dop = self.board.get_size()

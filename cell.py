@@ -314,7 +314,7 @@ class Board:
                     self.board[self.active_cell[0]][self.active_cell[1]].add_town(country)
                     self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
             else:
-                self.board[x][y].add_town(country)
+                self.board[int(x)][int(y)].add_town(country)
         except TypeError:
             return
         except AttributeError:
@@ -335,12 +335,16 @@ class Board:
             y = self.y_to_change
         dop = self.board[x][y].get_unit()
         if dop is None:
+            print('Unit is None')
             return
         self.board[x][y].del_unit()
         self.board[x1][y1].add_unit(dop)
 
     def init_settlers(self, country, x=-1, y=-1, pr='OLD'):
         """Создаем поселенцев"""
+        if pr == 'SAVE':
+            self.board[x][y].add_settlers(Settlers(x, y, country, self))
+            return
         try:
             if self.active_cell is None or self.active_country.food <= 0:
                 return
@@ -392,7 +396,7 @@ class Board:
     def init_builders(self, x=-1, y=-1, country=None):
         """Создаем строителей вокруг города"""
         if x != -1 and y != -1:
-            self.board[x][y].add_builders(Builders(x, y, country.get_town(), self))
+            self.board[int(x)][int(y)].add_builders(Builders(x, y, country, self))
             return
         try:
             if self.active_cell is None or self.active_country.food <= 0:
@@ -409,7 +413,7 @@ class Board:
                     if i == x - 1 and j == y - 1 or i == x + 1 and j == y - 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Builders(i, j, self.board[x][y].get_town(), self))
+                        self.board[i][j].add_unit(Builders(i, j, self.active_country, self))
                         self.active_country.food -= 10
                         return
         else:
@@ -418,7 +422,7 @@ class Board:
                     if i == x - 1 and j == y + 1 or i == x + 1 and j == y + 1:
                         continue
                     if not self.board[i][j].have_unit() and not self.board[i][j].have_town():
-                        self.board[i][j].add_unit(Builders(i, j, self.board[x][y].get_town(), self))
+                        self.board[i][j].add_unit(Builders(i, j, self.active_country, self))
                         self.active_country.food -= 10
                         return
 
@@ -426,12 +430,15 @@ class Board:
         """Возращает текущие координаты левого верзнего угла второго экрана"""
         return self.x, self.y
 
-    def init_farm(self, country):
+    def init_farm(self, country, pr='OLD', x=-1, y=-1):
         """Создает ферму"""
+        if pr == 'SAVE':
+            self.board[x][y].add_farm(country)
+            country.units_towns.append(f'Farm {x} {y}')
         try:
             if self.board[self.active_cell[0]][self.active_cell[1]].unit.who() == 'Строители':
                 self.board[self.active_cell[0]][self.active_cell[1]].add_farm(
-                    self.board[self.active_cell[0]][self.active_cell[1]].unit.get_town())
+                    self.board[self.active_cell[0]][self.active_cell[1]].unit.country)
                 self.board[self.active_cell[0]][self.active_cell[1]].del_unit()
                 country.units_towns.append(f'Farm {self.active_cell[0]} {self.active_cell[1]}')
         except TypeError:
@@ -442,7 +449,7 @@ class Board:
     def init_warriors(self, country, x=-1, y=-1, health=20):
         """Создает воинов"""
         if x != -1 and y != -1:
-            self.board[x][y].add_warriors(Warriors(x, y, country, self, health))
+            self.board[x][y].add_warriors(Warriors(x, y, country, self, health, from_save=True))
         try:
             if self.active_cell is None or self.active_country.food <= 0:
                 return
@@ -690,11 +697,13 @@ class Cell:
         """Добавление поселенцев на клетку"""
         self.unit_on_cell = True
         self.unit = unit
+        unit.country.units_towns.append(unit)
 
     def add_builders(self, unit):
         """Добавление строителей в клетку"""
         self.unit_on_cell = True
         self.unit = unit
+        unit.country.units_towns.append(unit)
 
     def have_unit(self):
         """Определяет есть ли в клетке юнит"""
@@ -711,6 +720,7 @@ class Cell:
 
     def del_unit(self):
         """Удаление юнита из клетки"""
+        del self.unit.country.units_towns[self.unit.country.units_towns.index(self)]
         self.unit_on_cell = False
         self.unit = None
 
@@ -744,15 +754,15 @@ class Cell:
         if self.town_on_cell:
             self.town.next_move()
 
-    def add_farm(self, town):
+    def add_farm(self, country):
         """Добавляет ферму в клетку"""
         if not self.farm_on_cell:
             self.farm_on_cell = True
-            town.growth_of_food += 3
-            town.country.t_food += 3
+            country.t_food += 3
             self.image_farm = load_image('buildings/farm.png', -1)
 
     def add_warriors(self, unit):
         """Добавление воинов на клетку"""
         self.unit_on_cell = True
         self.unit = unit
+        unit.country.units_towns.append(unit)
