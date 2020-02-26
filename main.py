@@ -96,7 +96,9 @@ def start_menu():
                     rules_menu()
                     draw_start_menu(index)
                 elif event.key == pygame.K_2:
-                    return 'new'
+                    dop = new_game()
+                    if dop == 'new':
+                        return dop
                 elif event.key == pygame.K_DOWN:
                     index = (index + 1) % 3
                     draw_start_menu(index)
@@ -115,9 +117,64 @@ def start_menu():
         clock.tick(fps)
 
 
+def draw_new_game_menu(active_line, x, y, x_warning=False, y_warning=False):
+    intro_text = ["Введите размеры поля",
+                  f"X: {x}", f"Y: {y}",
+                  "Выберите страны",
+                  "Ознакомиться с инструкцией",
+                  "Начать игру"]
+    screen.fill(pygame.Color('#98FB98'))
+    font = pygame.font.Font(None, 70)
+    text_coord = 50
+    for i, line in enumerate(intro_text):
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.top = text_coord
+        intro_rect.x = 50
+        text_coord += 70
+        text_coord += intro_rect.height
+        if i == active_line and line != "":
+            pygame.draw.rect(screen, pygame.Color(130, 137, 143),
+                             (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
+        screen.blit(string_rendered, intro_rect)
+        if "X" in line and x_warning:
+            string_warning = font.render(x_warning, 1, pygame.Color('red'))
+            intro_rect = string_warning.get_rect()
+            intro_rect.top = text_coord
+            intro_rect.x = 50
+            text_coord += 20
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+
+
 def new_game():
     global x, y, size, board, countries, i
-    x, y, size = 60, 30, 60
+    x, y, size = 0, 0, 0
+    index = 0
+    draw_new_game_menu(0, x, y)
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+                elif event.key == pygame.K_DOWN:
+                    index = (index + 1) % 6
+                    draw_new_game_menu(index, x, y)
+                elif event.key == pygame.K_UP:
+                    index = (index - 1) % 6
+                    draw_new_game_menu(index, x, y)
+                elif event.key == pygame.K_RETURN:
+                    if index == 1:
+                        pass
+                    elif index == 2:
+                        pass
+                else:
+                    pass
+        pygame.display.flip()
+        clock.tick(fps)
     board = Board(x, y, size, MONITOR_width, MONITOR_height)
     countries = [Country('Россия', board), Country('Украина', board)]
     i = 0
