@@ -58,26 +58,30 @@ def rules_menu():
         clock.tick(fps)
 
 
-def draw_start_menu():
-    intro_text = ["Продолжить (1)", "",
-                  "Новая игра (2)", "",
+def draw_start_menu(active_line):
+    intro_text = ["Продолжить (1)",
+                  "Новая игра (2)",
                   "Правила игры (3)"]
     fon = pygame.transform.scale(load_image('civilization.png'), (MONITOR_width, MONITOR_height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 70)
     text_coord = 50
-    for line in intro_text:
+    for i, line in enumerate(intro_text):
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
-        text_coord += 10
         intro_rect.top = text_coord
         intro_rect.x = 50
+        text_coord += 70
         text_coord += intro_rect.height
+        if i == active_line and line != "":
+            pygame.draw.rect(screen, pygame.Color(130, 137, 143),
+                             (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
         screen.blit(string_rendered, intro_rect)
 
 
 def start_menu():
-    draw_start_menu()
+    index = 0
+    draw_start_menu(index)
     run = True
     while run:
         for event in pygame.event.get():
@@ -90,9 +94,23 @@ def start_menu():
                     return 'continue'
                 elif event.key == pygame.K_3:
                     rules_menu()
-                    draw_start_menu()
+                    draw_start_menu(index)
                 elif event.key == pygame.K_2:
                     return 'new'
+                elif event.key == pygame.K_DOWN:
+                    index = (index + 1) % 3
+                    draw_start_menu(index)
+                elif event.key == pygame.K_UP:
+                    index = (index - 1) % 3
+                    draw_start_menu(index)
+                elif event.key == pygame.K_RETURN:
+                    if index == 0:
+                        return 'continue'
+                    elif index == 1:
+                        return 'new'
+                    elif index == 2:
+                        rules_menu()
+                        draw_start_menu(index)
         pygame.display.flip()
         clock.tick(fps)
 
