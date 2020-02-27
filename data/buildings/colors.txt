@@ -1,20 +1,20 @@
-Россия #FFFF00 Yellow
-Япония #FF0000 Red
-Украина #9400D3 DarkViolet
-Австралия #1E90FF DodgerBlue
-Бразилия #4B0082 Indigo
-Греция #20B2AA LightSeaGreen
-Дания #DA70D6 Orchid
-Египет #FFA07A LightSalmon
-Канада #DC143C Crimson
-Италия #EEE8AA PaleGoldenrod
-Испания #FF8C00 DarkOrange
-Индия #006400 DarkGreen
-Израиль #1E90FF DodgerBlue
-Китай #FF0000 Red
-Сирия #191970 MidnightBlue
-США #483D8B DarkSlateBlue
-Финляндия #4169E1 RoyalBlue
-Франция #CD5C5C IndianRed
-ЮАР #BDB76B DarkKhaki
-Neutral #000000 Black
+Россия #FFFF00
+Япония #FF0000
+Украина #9400D3
+Австралия #1E90FF
+Бразилия #4B0082
+Греция #20B2AA
+Дания #DA70D6
+Египет #FFA07A
+Канада #DC143C
+Италия #EEE8AA
+Испания #FF8C00
+Индия #006400
+Израиль #1E90FF
+Китай #FF0000
+Сирия #191970
+США #483D8B
+Финляндия #4169E1
+Франция #CD5C5C
+ЮАР #BDB76B
+Neutral #000000

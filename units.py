@@ -1,18 +1,7 @@
 from copy import deepcopy
 import os
 import pygame
-
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert()
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
+from functions import load_image
 
 
 class Settlers:
@@ -25,11 +14,13 @@ class Settlers:
         self.board = board
         self.t_level = 0
         self.health = 20
+        self.live = 1
         self.t_moving = []
         self.max_move = 1
         self.count_move = 0
         self.moveble = False
         self.image = load_image('units/settlers.png', -1)
+        country.units_towns.append(self)
 
     def move(self, x, y):
         if self.moveble:
@@ -130,7 +121,7 @@ class Settlers:
         return 'Поселенцы'
 
     def __str__(self):
-        return 'Поселенцы'
+        return 'Settlers'
 
     def update(self):
         self.moveble = False
@@ -141,19 +132,20 @@ class Settlers:
 
 class Builders:
 
-    def __init__(self, x, y, town, board):
+    def __init__(self, x, y, country, board):
         self.x = x
         self.y = y
-        self.town = town
         self.moveble = False
         self.board = board
-        self.country = town.country
+        self.country = country
         self.t_level = 0
         self.t_moving = []
         self.max_move = 1
         self.health = 20
         self.count_move = 0
+        self.live = 1
         self.image = load_image('units/builders.png', -1)
+        self.country.units_towns.append(self)
 
     def move(self, x, y):
         if self.moveble:
@@ -252,7 +244,7 @@ class Builders:
         return 'Строители'
 
     def __str__(self):
-        return 'Строители'
+        return 'Builders'
 
     def get_town(self):
         return self.town
@@ -266,26 +258,27 @@ class Builders:
 
 class Warriors:
 
-    def __init__(self, x, y, country, board):
+    def __init__(self, x, y, country, board, health=20, lvl=0, from_save=False):
         self.x = x
         self.y = y
         self.first_move = 1
-        self.moveble = False
+        self.moveble = True
+        self.from_save = from_save
         self.board = board
         self.country = country
-        self.health = 20
-        self.max_health = 20
-        self.damage = 10
-        self.t_level = 0
+        self.health = int(health)
+        self.max_health = lvl * 20 + 20
+        self.damage = 15
+        self.t_level = lvl
+        self.live = 1
         self.t_moving = []
-        self.max_move = 1
+        self.max_move = 3 + lvl
         self.count_move = 0
         self.image = load_image('units/warrior.png', -1)
+        country.units_towns.append(self)
 
     def move(self, x, y):
-        if self.first_move != 0:
-            return
-        if self.moveble:
+        if not self.moveble:
             return
         self.count_move = 0
         dop = self.check_can_move(x, y)
@@ -383,13 +376,13 @@ class Warriors:
         return 'Воины'
 
     def __str__(self):
-        return 'Воины'
+        return 'Warriors'
 
     def get_town(self):
         return self.town
 
     def update(self):
-        self.moveble = False
+        self.moveble = True
 
     def heal(self):
         self.health += 5
@@ -411,9 +404,6 @@ class Warriors:
 
     def take_damage(self):
         return self.damage
-
-    def get_damage(self, damage):
-        self.health -= damage
 
     def country(self):
         return self.country
