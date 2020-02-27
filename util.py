@@ -55,10 +55,11 @@ class Board:
 
     def render(self, screen):
         """Основная функция отрисовки поля"""
-        self.screen2.fill(pygame.Color('White'))
+        self.screen2.fill(pygame.Color('Grey'))
         for i in self.board:
             for j in i:
                 j.render()
+        self.board[self.active_cell[0]][self.active_cell[1]].render()
         screen.blit(self.screen2, (self.x + 100, self.y + 100))
 
     def __copy__(self):
@@ -70,8 +71,6 @@ class Board:
                 dop1.append(j.__copy__())
             dop.append(dop1)
         return dop
-
-
 
     def zoom(self, koef):
         """Изменение размеров клеток"""
@@ -117,6 +116,9 @@ class Board:
         """Возращает текущие координаты левого верзнего угла второго экрана"""
         return self.x, self.y
 
+    def set_type(self, type):
+        self.board[self.active_cell[0]][self.active_cell[1]].change_type(type)
+
 
 class Cell:
     """Класс игровой клетки"""
@@ -136,6 +138,8 @@ class Cell:
     def render(self):
         """Основная функция отрисовки"""
         pygame.draw.polygon(self.board.screen2, pygame.Color('black'), self.coords, 4)
+        if self.board.active_cell == (self.x, self.y):
+            pygame.draw.polygon(self.board.screen2, pygame.Color('Orange'), self.coords, 8)
         pygame.draw.polygon(self.board.screen2, self.color, self.coords)
 
     def check_is_pressed(self, x: int, y: int) -> bool:
@@ -198,7 +202,7 @@ MONITOR_width = GetSystemMetrics(0)
 MONITOR_height = GetSystemMetrics(1)
 size = (MONITOR_width, MONITOR_height)
 screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
-screen.fill(pygame.Color('White'))
+screen.fill(pygame.Color('Grey'))
 fps = 60
 clock = pygame.time.Clock()
 board = Board(60, 30, 60, MONITOR_width, MONITOR_height)
@@ -225,17 +229,23 @@ while running:
             elif event.key == pygame.K_SPACE:
                 pass
             elif event.key == pygame.K_1:
-                pass
+                board.set_type('Ocean')
             elif event.key == pygame.K_2:
-                pass
-            elif event.key == pygame.K_f:
-                pass
+                board.set_type('Forest')
+            elif event.key == pygame.K_4:
+                board.set_type('Desert')
             elif event.key == pygame.K_3:
-                pass
-            elif event.key == pygame.K_a:
-                pass
-            elif event.key == pygame.K_h:
-                pass
+                board.set_type('Tundra')
+            elif event.key == pygame.K_5:
+                board.set_type('Meadow')
+            elif event.key == pygame.K_UP:
+                board.active_cell = (max(0, board.active_cell[0] - 1), board.active_cell[1])
+            elif event.key == pygame.K_DOWN:
+                board.active_cell = (min(board.get_count_cells_x() - 1, board.active_cell[0] + 1), board.active_cell[1])
+            elif event.key == pygame.K_LEFT:
+                board.active_cell = (board.active_cell[0], max(0, board.active_cell[1] - 1))
+            elif event.key == pygame.K_RIGHT:
+                board.active_cell = (board.active_cell[0], min(board.get_count_cells_y() - 1, board.active_cell[1] + 1))
         elif event.type == pygame.MOUSEBUTTONUP:
             MOUSE_BUTTON_PRESSED = False
             MOUSEMOTION = False
@@ -245,7 +255,7 @@ while running:
             board.move(dop_x / K_MOVE, dop_y / K_MOVE)
             MOUSEMOTION = True
     clock.tick(fps)
-    screen.fill(pygame.Color('White'))
+    screen.fill(pygame.Color('Grey'))
     board.render(screen)
     pygame.display.flip()
 pygame.quit()
