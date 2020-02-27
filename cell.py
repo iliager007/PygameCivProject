@@ -20,7 +20,7 @@ class Board:
         with open('data/buildings/colors.txt', 'r', encoding='utf-8') as file:
             dop = file.readline()
             while dop != '':
-                country_name, color, color_name = dop.split()
+                country_name, color = dop.split()
                 self.color_country[country_name] = pygame.Color(color)
                 dop = file.readline()
         self.MONITOR_width = MONITOR_width

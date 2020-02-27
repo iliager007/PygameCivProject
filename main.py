@@ -100,7 +100,7 @@ def start_menu():
                     rules_menu()
                     draw_start_menu(index)
                 elif event.key == pygame.K_2:
-                    dop = new_game()
+                    new_game()
                     draw_start_menu(index)
                 elif event.key == pygame.K_DOWN:
                     index = (index + 1) % 3
@@ -199,16 +199,18 @@ def save_game():
         file.write('end')
 
 
-def draw_new_game_menu(active_line, x, y, x_warning=False, y_warning=False):
+def draw_new_game_menu(active_line, x, y, active_countries, x_warning=False, y_warning=False):
     intro_text = ["Введите размеры поля",
                   f"X: {x}", f"Y: {y}",
-                  "Выберите страны",
+                  "Выберите страны", ", ".join(active_countries),
                   "Ознакомиться с инструкцией",
                   "Начать игру"]
     screen.fill(pygame.Color('#98FB98'))
     font = pygame.font.Font(None, 70)
     text_coord = 50
     for i, line in enumerate(intro_text):
+        if line == "":
+            continue
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
         intro_rect.top = text_coord
@@ -220,6 +222,7 @@ def draw_new_game_menu(active_line, x, y, x_warning=False, y_warning=False):
                              (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
         screen.blit(string_rendered, intro_rect)
         if "X" in line and x_warning:
+            print(x_warning, line, i)
             x_coord = intro_rect.w + intro_rect.x + 20
             string_warning = font.render(x_warning, 1, pygame.Color('red'))
             intro_rect = string_warning.get_rect()
@@ -230,8 +233,9 @@ def draw_new_game_menu(active_line, x, y, x_warning=False, y_warning=False):
             screen.blit(string_warning, intro_rect)
             text_coord += 70
         elif "Y" in line and y_warning:
+            print(y_warning, line, i)
             y_coord = intro_rect.w + intro_rect.x + 20
-            string_warning = font.render(x_warning, 1, pygame.Color('red'))
+            string_warning = font.render(y_warning, 1, pygame.Color('red'))
             intro_rect = string_warning.get_rect()
             text_coord -= 120
             intro_rect.top = text_coord
@@ -287,7 +291,11 @@ def countries_menu():
                 elif event.key == pygame.K_UP:
                     index = (index - 1) % len(info)
                 elif event.key == pygame.K_ESCAPE:
-                    return
+                    dop = []
+                    for i in info:
+                        if i.split()[-1] == 'yes':
+                            dop.append(i.split()[0])
+                    return dop
                 elif event.key == pygame.K_RETURN:
                     info[index] += ' yes'
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -308,7 +316,9 @@ def new_game():
     global x, y, size, board, countries, i
     x, y, size = 0, 0, 0
     index = 0
-    draw_new_game_menu(0, x, y)
+    active_countries = []
+    k = 0
+    draw_new_game_menu(0, x, y, active_countries)
     run = True
     x_warning, y_warning = False, False
     while run:
@@ -319,9 +329,9 @@ def new_game():
                 if event.key == pygame.K_ESCAPE:
                     start_menu()
                 elif event.key == pygame.K_DOWN:
-                    index = (index + 1) % 6
+                    index = (index + 1) % (6 + k)
                 elif event.key == pygame.K_UP:
-                    index = (index - 1) % 6
+                    index = (index - 1) % (6 + k)
                 elif event.key == pygame.K_RETURN:
                     if index == 1:
                         if x > 400 or x <= 4:
@@ -334,10 +344,18 @@ def new_game():
                         else:
                             y_warning = 'Ок'
                     elif index == 3:
-                        countries_menu()
+                        active_countries = countries_menu()
+                        if len(active_countries):
+                            k = 1
                     elif index == 4:
                         rules_new_game()
-                        draw_new_game_menu(index, x, y)
+                    elif index == 6:
+                        if 4 < x <= 400 and 4 < y <= 400 and len(active_countries):
+                            board = Board(x, y, MONITOR_width, MONITOR_height)
+                            for i in active_countries:
+                                countries.append(Country(i, board))
+                            size = 60
+                            return
                 else:
                     char = button_pressed(event)
                     if char:
@@ -348,7 +366,7 @@ def new_game():
                             elif index == 2:
                                 y *= 10
                                 y += int(char)
-        draw_new_game_menu(index, x, y, x_warning, y_warning)
+        draw_new_game_menu(index, x, y, active_countries, x_warning, y_warning)
         pygame.display.flip()
         clock.tick(fps)
 
