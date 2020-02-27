@@ -5,35 +5,39 @@ import sys
 import tkinter
 import os
 from copy import deepcopy
-
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert()
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
-
-
-def get_size_of_desktop():
-    """Возращает размеры монитора"""
-    r = tkinter.Tk()
-    return r.winfo_screenwidth(), r.winfo_screenheight()
-
-
-def terminate():
-    """Завершает работы"""
-    pygame.quit()
-    sys.exit()
+from functions import *
 
 
 def rules_menu():
     intro_text = []
     with open('data/rules/rules_menu.txt', 'r', encoding='utf-8') as file:
+        dop = file.readlines()
+        for i in dop:
+            intro_text.append(i[:-1])
+    screen.fill(pygame.Color('#98FB98'))
+    font = pygame.font.Font(None, 50)
+    text_coord = 100
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 50
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+        clock.tick(fps)
+
+
+def rules_new_game():
+    intro_text = []
+    with open('data/rules/rules_new_game.txt', 'r', encoding='utf-8') as file:
         dop = file.readlines()
         for i in dop:
             intro_text.append(i[:-1])
@@ -97,8 +101,7 @@ def start_menu():
                     draw_start_menu(index)
                 elif event.key == pygame.K_2:
                     dop = new_game()
-                    if dop == 'new':
-                        return dop
+                    draw_start_menu(index)
                 elif event.key == pygame.K_DOWN:
                     index = (index + 1) % 3
                     draw_start_menu(index)
@@ -115,69 +118,6 @@ def start_menu():
                         draw_start_menu(index)
         pygame.display.flip()
         clock.tick(fps)
-
-
-def draw_new_game_menu(active_line, x, y, x_warning=False, y_warning=False):
-    intro_text = ["Введите размеры поля",
-                  f"X: {x}", f"Y: {y}",
-                  "Выберите страны",
-                  "Ознакомиться с инструкцией",
-                  "Начать игру"]
-    screen.fill(pygame.Color('#98FB98'))
-    font = pygame.font.Font(None, 70)
-    text_coord = 50
-    for i, line in enumerate(intro_text):
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        intro_rect.top = text_coord
-        intro_rect.x = 50
-        text_coord += 70
-        text_coord += intro_rect.height
-        if i == active_line and line != "":
-            pygame.draw.rect(screen, pygame.Color(130, 137, 143),
-                             (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
-        screen.blit(string_rendered, intro_rect)
-        if "X" in line and x_warning:
-            string_warning = font.render(x_warning, 1, pygame.Color('red'))
-            intro_rect = string_warning.get_rect()
-            intro_rect.top = text_coord
-            intro_rect.x = 50
-            text_coord += 20
-            text_coord += intro_rect.height
-            screen.blit(string_rendered, intro_rect)
-
-
-def new_game():
-    global x, y, size, board, countries, i
-    x, y, size = 0, 0, 0
-    index = 0
-    draw_new_game_menu(0, x, y)
-    run = True
-    while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    return
-                elif event.key == pygame.K_DOWN:
-                    index = (index + 1) % 6
-                    draw_new_game_menu(index, x, y)
-                elif event.key == pygame.K_UP:
-                    index = (index - 1) % 6
-                    draw_new_game_menu(index, x, y)
-                elif event.key == pygame.K_RETURN:
-                    if index == 1:
-                        pass
-                    elif index == 2:
-                        pass
-                else:
-                    pass
-        pygame.display.flip()
-        clock.tick(fps)
-    board = Board(x, y, size, MONITOR_width, MONITOR_height)
-    countries = [Country('Россия', board), Country('Украина', board)]
-    i = 0
 
 
 def load_game(info):
@@ -257,6 +197,160 @@ def save_game():
                     file.write(name)
                     file.write('\n')
         file.write('end')
+
+
+def draw_new_game_menu(active_line, x, y, x_warning=False, y_warning=False):
+    intro_text = ["Введите размеры поля",
+                  f"X: {x}", f"Y: {y}",
+                  "Выберите страны",
+                  "Ознакомиться с инструкцией",
+                  "Начать игру"]
+    screen.fill(pygame.Color('#98FB98'))
+    font = pygame.font.Font(None, 70)
+    text_coord = 50
+    for i, line in enumerate(intro_text):
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.top = text_coord
+        intro_rect.x = 50
+        text_coord += 70
+        text_coord += intro_rect.height
+        if i == active_line and line != "":
+            pygame.draw.rect(screen, pygame.Color(130, 137, 143),
+                             (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
+        screen.blit(string_rendered, intro_rect)
+        if "X" in line and x_warning:
+            x_coord = intro_rect.w + intro_rect.x + 20
+            string_warning = font.render(x_warning, 1, pygame.Color('red'))
+            intro_rect = string_warning.get_rect()
+            text_coord -= 120
+            intro_rect.top = text_coord
+            intro_rect.x = x_coord
+            text_coord += intro_rect.height
+            screen.blit(string_warning, intro_rect)
+            text_coord += 70
+        elif "Y" in line and y_warning:
+            y_coord = intro_rect.w + intro_rect.x + 20
+            string_warning = font.render(x_warning, 1, pygame.Color('red'))
+            intro_rect = string_warning.get_rect()
+            text_coord -= 120
+            intro_rect.top = text_coord
+            intro_rect.x = y_coord
+            text_coord += intro_rect.height
+            screen.blit(string_warning, intro_rect)
+            text_coord += 70
+
+
+def draw_countries_menu(info, active_line, text_coord, ok, no):
+    font = pygame.font.Font(None, 70)
+    screen.fill(pygame.Color('#98FB98'))
+    for i, line in enumerate(info[:-1]):
+        string_rendered = font.render(line.split()[0], 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.top = text_coord
+        intro_rect.x = 50
+        if i == active_line and line != "":
+            pygame.draw.rect(screen, pygame.Color(130, 137, 143),
+                             (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
+        screen.blit(string_rendered, intro_rect)
+        pygame.draw.rect(screen, pygame.Color(line.split()[1]),
+                         (intro_rect.x + intro_rect.w + 20, intro_rect.y, intro_rect.h, intro_rect.h))
+        text_coord += 70
+        text_coord += intro_rect.height
+        if line.split()[-1] == 'no':
+            no = pygame.transform.scale(no, (intro_rect.h, intro_rect.h))
+            screen.blit(no, (intro_rect.x + intro_rect.w + intro_rect.h + 40, intro_rect.y,
+                             intro_rect.h, intro_rect.w))
+        elif line.split()[-1] == 'yes':
+            ok = pygame.transform.scale(ok, (intro_rect.h, intro_rect.h))
+            screen.blit(ok, (intro_rect.x + intro_rect.w + intro_rect.h + 40, intro_rect.y,
+                             intro_rect.h, intro_rect.w))
+
+
+def countries_menu():
+    info = []
+    ok = load_image('ok.png', -1)
+    no = load_image('no.png', -1)
+    with open('data/buildings/colors.txt', 'r', encoding='utf-8') as file:
+        for i in file.readlines():
+            info.append(i[:-1] + ' no')
+    text_coord = 50
+    draw_countries_menu(info, 0, text_coord, ok, no)
+    index = 0
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    index = (index + 1) % len(info)
+                elif event.key == pygame.K_UP:
+                    index = (index - 1) % len(info)
+                elif event.key == pygame.K_ESCAPE:
+                    return
+                elif event.key == pygame.K_RETURN:
+                    info[index] += ' yes'
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 5:
+                    text_coord -= 20
+                    if text_coord <= -1420:
+                        text_coord += 20
+                elif event.button == 4:
+                    text_coord += 20
+                    if text_coord >= 70:
+                        text_coord -= 20
+        draw_countries_menu(info, index, text_coord, ok, no)
+        pygame.display.flip()
+        clock.tick(fps)
+
+
+def new_game():
+    global x, y, size, board, countries, i
+    x, y, size = 0, 0, 0
+    index = 0
+    draw_new_game_menu(0, x, y)
+    run = True
+    x_warning, y_warning = False, False
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    start_menu()
+                elif event.key == pygame.K_DOWN:
+                    index = (index + 1) % 6
+                elif event.key == pygame.K_UP:
+                    index = (index - 1) % 6
+                elif event.key == pygame.K_RETURN:
+                    if index == 1:
+                        if x > 400 or x <= 4:
+                            x_warning = 'Недопустимое значение X. Диапозон от 5 до 400'
+                        else:
+                            x_warning = 'Ок'
+                    elif index == 2:
+                        if y > 400 or y <= 4:
+                            y_warning = 'Недопустимое значение Y. Диапозон от 5 до 400'
+                        else:
+                            y_warning = 'Ок'
+                    elif index == 3:
+                        countries_menu()
+                    elif index == 4:
+                        rules_new_game()
+                        draw_new_game_menu(index, x, y)
+                else:
+                    char = button_pressed(event)
+                    if char:
+                        if char.isdigit():
+                            if index == 1:
+                                x *= 10
+                                x += int(char)
+                            elif index == 2:
+                                y *= 10
+                                y += int(char)
+        draw_new_game_menu(index, x, y, x_warning, y_warning)
+        pygame.display.flip()
+        clock.tick(fps)
 
 
 pygame.init()
