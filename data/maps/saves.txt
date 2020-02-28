@@ -1,40 +1,143 @@
-Россия Япония Украина
-5 5
-0 0 Meadow
-0 1 Meadow
-0 2 Ocean
-0 3 Ocean
+Россия Япония Египет Испания Китай Сирия США Финляндия Франция ЮАР
+10 10
+0 0 Forest
+0 1 Forest
+0 2 Forest
+0 3 Forest
 0 4 Forest
-1 0 Ocean
-1 1 Ocean
-1 2 Ocean
-1 3 Ocean
+0 5 Forest
+0 6 Tundra
+0 7 Forest
+0 8 Forest
+0 9 Meadow
+1 0 Forest
+1 1 Forest
+1 2 Forest
+1 3 Forest
 1 4 Forest
-2 0 Tundra
-2 1 Ocean
-2 2 Desert
+1 5 Tundra
+1 6 Tundra
+1 7 Forest
+1 8 Forest
+1 9 Meadow
+2 0 Forest
+2 1 Forest
+2 2 Forest
 2 3 Forest
 2 4 Forest
-3 0 Desert
-3 1 Desert
-3 2 Desert
+2 5 Forest
+2 6 Forest
+2 7 Forest
+2 8 Meadow
+2 9 Meadow
+3 0 Forest
+3 1 Forest
+3 2 Forest
 3 3 Forest
 3 4 Forest
+3 5 Forest
+3 6 Forest
+3 7 Meadow
+3 8 Meadow
+3 9 Meadow
 4 0 Desert
-4 1 Desert
+4 1 Forest
 4 2 Desert
 4 3 Forest
-4 4 Forest
+4 4 Ocean
+4 5 Forest
+4 6 Ocean
+4 7 Meadow
+4 8 Meadow
+4 9 Meadow
+5 0 Desert
+5 1 Desert
+5 2 Desert
+5 3 Desert
+5 4 Ocean
+5 5 Ocean
+5 6 Ocean
+5 7 Meadow
+5 8 Meadow
+5 9 Meadow
+6 0 Desert
+6 1 Desert
+6 2 Desert
+6 3 Desert
+6 4 Ocean
+6 5 Ocean
+6 6 Ocean
+6 7 Ocean
+6 8 Meadow
+6 9 Meadow
+7 0 Desert
+7 1 Desert
+7 2 Desert
+7 3 Desert
+7 4 Desert
+7 5 Ocean
+7 6 Ocean
+7 7 Ocean
+7 8 Ocean
+7 9 Ocean
+8 0 Desert
+8 1 Desert
+8 2 Desert
+8 3 Desert
+8 4 Desert
+8 5 Ocean
+8 6 Ocean
+8 7 Ocean
+8 8 Ocean
+8 9 Ocean
+9 0 Desert
+9 1 Desert
+9 2 Desert
+9 3 Desert
+9 4 Desert
+9 5 Desert
+9 6 Desert
+9 7 Ocean
+9 8 Ocean
+9 9 Ocean
 Россия
 20 0
-Settlers 3 0 1
-Settlers 3 0 1
+Settlers 5 3 1
+Settlers 5 3 1
 Япония
 20 0
-Settlers 4 0 1
-Settlers 4 0 1
-Украина
+Settlers 2 5 1
+Settlers 2 5 1
+Египет
 20 0
-Settlers 2 4 1
-Settlers 2 4 1
+Settlers 3 5 1
+Settlers 3 5 1
+Испания
+20 0
+Settlers 2 9 1
+Settlers 2 9 1
+Китай
+20 0
+Settlers 5 0 1
+Settlers 5 0 1
+Сирия
+20 0
+Settlers 0 6 1
+Settlers 0 6 1
+США
+20 0
+Settlers 7 4 1
+Settlers 7 4 1
+Финляндия
+20 0
+Settlers 1 4 1
+Settlers 1 4 1
+Франция
+20 0
+Settlers 3 6 1
+Settlers 3 6 1
+ЮАР
+20 0
+Settlers 5 7 1
+Settlers 5 7 1
 end

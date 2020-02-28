@@ -315,6 +315,7 @@ def countries_menu():
 def new_game():
     global x, y, size, board, countries, i
     x, y, size = 0, 0, 0
+    countries = []
     index = 0
     active_countries = []
     k = 0
@@ -352,13 +353,20 @@ def new_game():
                         active_countries = countries_menu()
                         if len(active_countries):
                             k = 1
-                    elif index == 4:
+                        else:
+                            k = 0
+                    elif index == 4 + k:
                         rules_new_game()
-                    elif index == 6:
+                    elif index == 6 or index == 5:
                         if 4 < x <= 400 and 4 < y <= 400 and len(active_countries):
                             board = Board(x, y, MONITOR_width, MONITOR_height)
-                            for i in active_countries:
-                                countries.append(Country(i, board))
+                            try:
+                                for i in active_countries:
+                                    countries.append(Country(i, board))
+                            except NameError:
+                                countries = []
+                                for i in active_countries:
+                                    countries.append(Country(i, board))
                             size = 60
                             return
                 else:
@@ -374,6 +382,47 @@ def new_game():
         draw_new_game_menu(index, x, y, active_countries, x_warning, y_warning)
         pygame.display.flip()
         clock.tick(fps)
+
+
+def draw_pause_menu(active_line):
+    font = pygame.font.Font(None, 70)
+    screen.fill(pygame.Color('#98FB98'))
+    text_coord = MONITOR_height // 3
+    info = ['Продолжить', 'Главное меню', 'Выход']
+    for i, line in enumerate(info):
+        string_rendered = font.render(line.split()[0], 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.top = text_coord
+        intro_rect.x = MONITOR_width // 2 - 150
+        text_coord += 70
+        if i == active_line and line != "":
+            pygame.draw.rect(screen, pygame.Color(130, 137, 143),
+                             (intro_rect.x - 10, intro_rect.y - 10, intro_rect.w + 20, intro_rect.h + 20))
+        screen.blit(string_rendered, intro_rect)
+
+
+def pause_menu():
+    index = 0
+    draw_pause_menu(index)
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    index = (index + 1) % 3
+                elif event.key == pygame.K_UP:
+                    index = (index - 1) % 3
+                elif event.key == pygame.K_RETURN:
+                    if index == 0:
+                        board.render(screen)
+                    elif index == 1:
+                        save_game()
+                        start_menu()
+                    elif index == 2:
+                        save_game()
+                        terminate()
 
 
 pygame.init()
@@ -419,8 +468,8 @@ while running:
                 board.zoom(-1)
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                running = False
                 save_game()
+                terminate()
             elif event.key == pygame.K_SPACE:
                 board.init_town(-1, -1, countries[i])
             elif event.key == pygame.K_1:
