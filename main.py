@@ -332,6 +332,11 @@ def new_game():
                     index = (index + 1) % (6 + k)
                 elif event.key == pygame.K_UP:
                     index = (index - 1) % (6 + k)
+                elif event.key == pygame.K_BACKSPACE:
+                    if index == 1:
+                        x //= 10
+                    elif index == 2:
+                        y //= 10
                 elif event.key == pygame.K_RETURN:
                     if index == 1:
                         if x > 400 or x <= 4:
